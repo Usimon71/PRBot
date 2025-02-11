@@ -14,11 +14,16 @@ public class TelegramBotWebhookController {
 
     private static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
 
-    private final ConnectService connectService;
+    private final ConnectService _connectService;
+
+    private final NewIntegrationService _newIntegrationService;
 
     @Autowired
-    public TelegramBotWebhookController(ConnectService connectService) {
-        this.connectService = connectService;
+    public TelegramBotWebhookController(
+            ConnectService connectService,
+            NewIntegrationService newIntegrationService) {
+        _connectService = connectService;
+        _newIntegrationService = newIntegrationService;
     }
 
     @PostMapping
@@ -50,14 +55,13 @@ public class TelegramBotWebhookController {
         if ("/connect".equals(command)) {
             Long chatId = message.getChat().getId();
 
-            return connectService.ProvideAuthorizeLink(chatId)
-                    .map(ResponseEntity::ok);
+            return _connectService.ProvideAuthorizeLink(chatId);
         }
 
         if ("/new_integration".equals(command)) {
             Long chatId = message.getChat().getId();
-
-            return Mono.just(ResponseEntity.ok("New integration"));
+            System.out.println("Got command");
+            return _newIntegrationService.SendRepositories(chatId);
         }
 
         return Mono.just(ResponseEntity.ok("TG Webhook processed successfully!"));

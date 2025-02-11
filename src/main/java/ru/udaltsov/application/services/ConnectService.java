@@ -1,5 +1,6 @@
 package ru.udaltsov.application.services;
 
+import org.springframework.http.ResponseEntity;
 import ru.udaltsov.application.MessageSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class ConnectService extends TelegramServiceBase {
         this.messageSender = messageSender;
     }
 
-    public Mono<String> ProvideAuthorizeLink(Long chatId) {
+    public Mono<ResponseEntity<String>> ProvideAuthorizeLink(Long chatId) {
         String CLIENT_ID = System.getenv("CLIENT_ID");
         String REDIRECT_URL = System.getenv("REDIRECT_AUTH_URL");
         String link = "https://github.com/login/oauth/authorize?client_id="
@@ -28,6 +29,6 @@ public class ConnectService extends TelegramServiceBase {
                 + "&state=" + chatId;
         var message = "Please follow the link to authorize the bot:\n" + link;
 
-        return messageSender.sendMessage(message, chatId);
+        return messageSender.sendMessage(chatId, message);
     }
 }

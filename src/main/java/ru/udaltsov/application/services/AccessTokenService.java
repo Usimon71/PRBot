@@ -111,7 +111,7 @@ public class AccessTokenService {
                             .collect(Collectors.joining(", "));
 
                     // Send the message asynchronously
-                    return messageSender.sendMessage("Repositories: " + repoNames, chatId);
+                    return messageSender.sendMessage(chatId, "Repositories: " + repoNames);
                 })
                 .then(Mono.just(redirectResponse)); // Ensure the redirect happens immediately
     }
