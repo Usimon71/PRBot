@@ -6,4 +6,5 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.8.xsd">
 
     <include file="db/changelog/changes/001-create-table-access_tokens.sql"/>
+    <include file="db/changelog/changes/002-create-table-integrations.sql"/>
 </databaseChangeLog>

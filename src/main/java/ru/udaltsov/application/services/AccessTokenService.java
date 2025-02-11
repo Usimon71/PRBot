@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.udaltsov.application.MessageSender;
-import ru.udaltsov.models.IUserAccessTokenRepository;
+import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
 import ru.udaltsov.models.UserAccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

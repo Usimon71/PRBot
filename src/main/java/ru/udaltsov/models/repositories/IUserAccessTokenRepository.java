@@ -1,6 +1,7 @@
-package ru.udaltsov.models;
+package ru.udaltsov.models.repositories;
 
 import reactor.core.publisher.Mono;
+import ru.udaltsov.models.UserAccessToken;
 
 public interface IUserAccessTokenRepository {
 

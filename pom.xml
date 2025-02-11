@@ -35,12 +35,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>io.netty</groupId>-->
-<!--            <artifactId>netty-resolver-dns-native-macos</artifactId>-->
-<!--            <version>4.1.96.Final</version> &lt;!&ndash; Match your Netty version &ndash;&gt;-->
-<!--            <classifier>osx-aarch_64</classifier> &lt;!&ndash; For Apple Silicon (M1/M2) &ndash;&gt;-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <version>4.1.108.Final</version>
+            <classifier>osx-aarch_64</classifier>
+        </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>

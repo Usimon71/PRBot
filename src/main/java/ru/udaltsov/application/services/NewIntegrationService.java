@@ -9,10 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.MessageSender;
-import ru.udaltsov.data_access.UserAccessTokenRepository;
+import ru.udaltsov.data_access.repositories.UserAccessTokenRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class NewIntegrationService {
@@ -40,15 +39,17 @@ public class NewIntegrationService {
 
     public Mono<ResponseEntity<String>> SendRepositories(Long chatId) {
         return _userAccessTokenRepository.FindById(chatId)
-                .flatMap(userAccessToken -> _repoClient
+                .flatMap(userAccessToken ->
+                   _repoClient
                         .get()
-                        .header("Authorization", "Bearer " + userAccessToken)
+                        .header("Authorization", "Bearer " + userAccessToken.token())
                         .retrieve()
                         .bodyToMono(String.class)
                         .flatMap(responseBody_repo -> {
                             List<Map<String, Object>> repos;
                             try {
-                                repos = new ObjectMapper().readValue(responseBody_repo, new TypeReference<>() {});
+                                repos = new ObjectMapper().readValue(responseBody_repo, new TypeReference<>() {
+                                });
                             } catch (JsonProcessingException e) {
                                 return Mono.error(e);
                             }
