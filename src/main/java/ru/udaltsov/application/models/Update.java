@@ -8,21 +8,25 @@ public class Update {
 
     private Message message;
 
+    private CallbackQuery callbackQuery;
+
     // Getters and setters
     public long getUpdateId() {
         return updateId;
     }
 
-    public void setUpdateId(long updateId) {
-        this.updateId = updateId;
-    }
+    public CallbackQuery getCallbackQuery() { return callbackQuery; }
 
     public Message getMessage() {
         return message;
     }
 
-    public void setMessage(Message message) {
-        this.message = message;
+    public boolean hasMessage() {
+        return message != null;
+    }
+
+    public boolean hasCallbackQuery() {
+        return callbackQuery != null;
     }
 }
 
