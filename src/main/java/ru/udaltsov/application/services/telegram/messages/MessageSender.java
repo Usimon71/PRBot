@@ -1,6 +1,7 @@
 package ru.udaltsov.application.services.telegram.messages;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -75,6 +76,50 @@ public class MessageSender {
             keyboardArray.add(row);
         }
 
+        replyMarkup.set("inline_keyboard", keyboardArray);
+
+        messageJson.set("reply_markup", replyMarkup);
+
+        String payload;
+        try {
+            payload = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(messageJson);
+        } catch (JsonProcessingException e) {
+            return Mono.error(e);
+        }
+
+        return client
+                .post()
+                .uri("/sendMessage")
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnError(error -> System.err.println("Telegram API Error: " + error.getMessage()))
+                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
+                .map(ResponseEntity::ok);
+    }
+
+    public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message, JsonNode options, String replyType) {
+        // Root JSON object
+        ObjectNode messageJson = mapper.createObjectNode();
+        messageJson.put("chat_id", chatId);
+        messageJson.put("text", message);
+
+        // Creating the keyboard layout
+        ObjectNode replyMarkup = mapper.createObjectNode();
+        ArrayNode keyboardArray = mapper.createArrayNode();
+
+        var optionsArray = options.get("options");
+
+        for (var pair : optionsArray) {
+            ArrayNode row = mapper.createArrayNode();
+
+            ObjectNode button = mapper.createObjectNode();
+            button.put("text", pair.get(0).asText());
+            String encodedCallback = createCallbackJson(replyType, pair.get(1).asText(), chatId);
+            button.put("callback_data", encodedCallback);
+            row.add(button);
+            keyboardArray.add(row);
+        }
         replyMarkup.set("inline_keyboard", keyboardArray);
 
         messageJson.set("reply_markup", replyMarkup);

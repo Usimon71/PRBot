@@ -12,16 +12,12 @@ public class NewIntegrationService {
 
     private final IIntegrationRepository _integrationRepository;
 
-    private final MessageSender _messageSender;
-
     public NewIntegrationService(
-            IIntegrationRepository integrationRepository,
-            MessageSender messageSender) {
+            IIntegrationRepository integrationRepository) {
         _integrationRepository = integrationRepository;
-        _messageSender = messageSender;
     }
 
-    public Mono<ResponseEntity<String>> SaveIntegration(Long chatId, String name) {
+    public Mono<ResponseEntity<String>> saveIntegration(Long chatId, String name) {
         return _integrationRepository.FindIntegrationsByIdAndName(chatId, name)
                 .flatMap(found -> {
                     if (found) {
