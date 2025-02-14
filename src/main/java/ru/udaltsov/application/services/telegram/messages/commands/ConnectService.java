@@ -1,10 +1,11 @@
-package ru.udaltsov.application.services;
+package ru.udaltsov.application.services.telegram.messages.commands;
 
 import org.springframework.http.ResponseEntity;
-import ru.udaltsov.application.MessageSender;
+import ru.udaltsov.application.services.telegram.messages.MessageSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.telegram.TelegramServiceBase;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

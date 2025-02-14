@@ -1,15 +1,13 @@
 package ru.udaltsov.application.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import ru.udaltsov.application.CallbackDataDecoder;
 import ru.udaltsov.application.models.Update;
-import ru.udaltsov.application.services.ConnectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import ru.udaltsov.application.services.IntegrationProviderService;
-import ru.udaltsov.application.services.NewIntegrationService;
+import ru.udaltsov.application.services.telegram.callback.CallbackProcessorService;
+import ru.udaltsov.application.services.telegram.messages.MessageProcessorService;
 
 @RestController
 @RequestMapping("/webhook/{token}")
@@ -17,20 +15,17 @@ public class TelegramBotWebhookController {
 
     private static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
 
-    private final ConnectService _connectService;
+    private final MessageProcessorService _messageProcessorService;
 
-    private final IntegrationProviderService _integrationProviderService;
-
-    private final NewIntegrationService _newIntegrationService;
+    private final CallbackProcessorService _callbackProcessorService;
 
     @Autowired
     public TelegramBotWebhookController(
-            ConnectService connectService,
-            IntegrationProviderService integrationProviderService,
-            NewIntegrationService newIntegrationService) {
-        _connectService = connectService;
-        _integrationProviderService = integrationProviderService;
-        _newIntegrationService = newIntegrationService;
+            MessageProcessorService messageProcessorService,
+            CallbackProcessorService callbackProcessorService
+            ) {
+        _messageProcessorService = messageProcessorService;
+        _callbackProcessorService = callbackProcessorService;
     }
 
     @PostMapping
@@ -51,60 +46,18 @@ public class TelegramBotWebhookController {
         if (update.hasMessage()) {
             var message = update.getMessage();
 
-            var entities = message.getEntities();
-            if (entities == null || entities.isEmpty()) {
-                return Mono.just(ResponseEntity.ok("No entities found"));
-            }
+            System.out.println("Message received!");
 
-            int offset = entities.get(0).getOffset();
-            int length = entities.get(0).getLength();
-            String command = message.getText().substring(offset, offset + length);
-
-            if ("/connect".equals(command)) {
-                Long chatId = message.getChat().getId();
-
-                return _connectService.ProvideAuthorizeLink(chatId);
-            }
-
-            if ("/new_integration".equals(command)) {
-                Long chatId = message.getChat().getId();
-
-                return _integrationProviderService.SendRepositories(chatId);
-            }
-        } else if (update.hasCallbackQuery()) {
-            var callbackQuery = update.getCallbackQuery();
-
-            if (callbackQuery.getData() == null) {
-                return Mono.just(ResponseEntity.badRequest().body("No callback query data found"));
-            }
-
-            var decodeResult = CallbackDataDecoder.decode(callbackQuery.getData());
-
-            if (!decodeResult.has("integration")) {
-                return Mono.just(ResponseEntity.badRequest().body("Invalid callback query"));
-            }
-
-            String integration = decodeResult.get("integration").toString();
-
-            if (!decodeResult.has("chatid")) {
-                return Mono.just(ResponseEntity.badRequest().body("Invalid callback query"));
-            }
-
-            Long chatId = Long.parseLong(decodeResult.get("chatid").toString());
-
-            return _newIntegrationService.SaveIntegration(chatId, integration)
-                    .flatMap(result -> {
-                        if (result == 0) {
-                            return Mono
-                                    .just(ResponseEntity.internalServerError()
-                                            .body("Failed to save integration"));
-                        }
-
-                        return Mono
-                                .just(ResponseEntity.ok("Successfully saved integration"));
-                    });
+            return _messageProcessorService.process(message);
         }
 
+        if (update.hasCallbackQuery()) {
+            var callbackQuery = update.getCallbackQuery();
+
+            System.out.println("Callback query received!");
+
+            return _callbackProcessorService.process(callbackQuery);
+        }
 
         return Mono.just(ResponseEntity.ok("TG Webhook processed successfully!"));
     }

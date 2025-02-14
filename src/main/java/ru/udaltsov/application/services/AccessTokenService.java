@@ -3,7 +3,7 @@ package ru.udaltsov.application.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.udaltsov.application.MessageSender;
+import ru.udaltsov.application.services.telegram.messages.MessageSender;
 import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
 import ru.udaltsov.models.UserAccessToken;
 import org.slf4j.Logger;
@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class AccessTokenService {
 
     private static final Logger log = LoggerFactory.getLogger(AccessTokenService.class);
+
     private final WebClient auth_client;
 
     private final WebClient repo_client;

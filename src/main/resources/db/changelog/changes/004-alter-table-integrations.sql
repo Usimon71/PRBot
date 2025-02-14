@@ -1,0 +1,1 @@
+ALTER TABLE integrations ADD CONSTRAINT unique_chatid_name UNIQUE (chatid, name);

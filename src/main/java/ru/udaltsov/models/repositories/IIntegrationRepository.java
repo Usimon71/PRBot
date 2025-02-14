@@ -7,6 +7,8 @@ import ru.udaltsov.models.Integration;
 public interface IIntegrationRepository {
     Flux<Integration> FindAllIntegrationsById(Long chatId);
 
+    Mono<Boolean> FindIntegrationsByIdAndName(Long chatId, String name);
+
     Mono<Long> DeleteIntegration(Integration integration);
 
     Mono<Long> AddIntegration(Integration integration);

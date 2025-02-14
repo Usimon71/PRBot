@@ -1,4 +1,4 @@
-package ru.udaltsov.application.services;
+package ru.udaltsov.application.services.telegram.messages.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -8,13 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import ru.udaltsov.application.MessageSender;
+import ru.udaltsov.application.services.telegram.messages.MessageSender;
 import ru.udaltsov.data_access.repositories.UserAccessTokenRepository;
 
 import java.util.*;
 
 @Service
 public class IntegrationProviderService {
+
     private final MessageSender _messageSender;
 
     private final WebClient _repoClient;
@@ -37,7 +38,7 @@ public class IntegrationProviderService {
         _userAccessTokenRepository = userAccessTokenRepository;
     }
 
-    public Mono<ResponseEntity<String>> SendRepositories(Long chatId) {
+    public Mono<ResponseEntity<String>> sendRepositories(Long chatId) {
         return _userAccessTokenRepository.FindById(chatId)
                 .flatMap(userAccessToken ->
                    _repoClient
@@ -61,7 +62,7 @@ public class IntegrationProviderService {
                                     .map(repo -> (String) repo.get("name"))
                                     .toList();
 
-                            return _messageSender.sendMessage(chatId, "Select repository:", reposArr);
+                            return _messageSender.sendMessage(chatId, "Select repository:", reposArr, "i");
                         }))
                 .switchIfEmpty(_messageSender.sendMessage(chatId, "You are not authenticated"));
     }

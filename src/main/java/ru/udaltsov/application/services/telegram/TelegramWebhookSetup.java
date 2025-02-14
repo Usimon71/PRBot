@@ -1,4 +1,4 @@
-package ru.udaltsov.application;
+package ru.udaltsov.application.services.telegram;
 
 import org.springframework.http.ResponseEntity;
 

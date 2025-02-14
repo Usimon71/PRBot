@@ -24,7 +24,7 @@ public class IntegrationRepository implements IIntegrationRepository {
     @Override
     public Flux<Integration> FindAllIntegrationsById(Long chatId) {
         String sql = "SELECT * FROM integrations" +
-                " WHERE chatid = :chatId";
+                " WHERE chatid = :chatid";
 
         return _databaseClient
                 .sql(sql)
@@ -36,6 +36,19 @@ public class IntegrationRepository implements IIntegrationRepository {
                 .all()
                 .onErrorResume(SQLException.class, e ->
                         Mono.error(new DatabaseException("Database error occurred", e)));
+    }
+
+    @Override
+    public Mono<Boolean> FindIntegrationsByIdAndName(Long chatId, String name) {
+        String sql = "SELECT * FROM integrations WHERE chatid = :chatid AND name = :name";
+
+        return _databaseClient
+                .sql(sql)
+                .bind("chatid", chatId)
+                .bind("name", name)
+                .map(row -> true)
+                .one()
+                .switchIfEmpty(Mono.just(false));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package ru.udaltsov.application;
+package ru.udaltsov.application.services.telegram.messages;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,11 +12,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class MessageSender {
@@ -24,9 +20,11 @@ public class MessageSender {
 
     private final WebClient client;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
     public MessageSender(WebClient.Builder webClientBuilder) {
-        String baseUrl = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage";
+        String baseUrl = "https://api.telegram.org/bot" + BOT_TOKEN;
         this.client = webClientBuilder
                 .baseUrl(baseUrl)
                 .defaultHeader("Content-Type", "application/json")
@@ -40,6 +38,7 @@ public class MessageSender {
                 "}";
         return client
                 .post()
+                .uri("/sendMessage")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -47,9 +46,7 @@ public class MessageSender {
                 .map(ResponseEntity::ok);
     }
 
-    public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message, List<String> replyOptions) {
-        ObjectMapper mapper = new ObjectMapper();
-
+    public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message, List<String> replyOptions, String replyType) {
         // Root JSON object
         ObjectNode messageJson = mapper.createObjectNode();
         messageJson.put("chat_id", chatId);
@@ -61,17 +58,24 @@ public class MessageSender {
 
         for (int i = 0; i < replyOptions.size(); i++) {
             ArrayNode row = mapper.createArrayNode();
-            row.add(replyOptions.get(i));
+
+            ObjectNode button = mapper.createObjectNode();
+            button.put("text", replyOptions.get(i));
+            String encodedCallback = createCallbackJson(replyType, replyOptions.get(i), chatId);
+            button.put("callback_data", encodedCallback);
+            row.add(button);
             if (i + 1 != replyOptions.size()) {
-                row.add(replyOptions.get(i + 1));
+                ObjectNode button2 = mapper.createObjectNode();
+                button2.put("text", replyOptions.get(i + 1));
+                String encodedCallback2 = createCallbackJson(replyType, replyOptions.get(i + 1), chatId);
+                button2.put("callback_data", encodedCallback2);
+                row.add(button2);
                 i += 1;
             }
             keyboardArray.add(row);
         }
 
-        replyMarkup.set("keyboard", keyboardArray);
-        replyMarkup.put("resize_keyboard", true);
-        replyMarkup.put("one_time_keyboard", true);
+        replyMarkup.set("inline_keyboard", keyboardArray);
 
         messageJson.set("reply_markup", replyMarkup);
 
@@ -84,9 +88,11 @@ public class MessageSender {
 
         return client
                 .post()
+                .uri("/sendMessage")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
+                .doOnError(error -> System.err.println("Telegram API Error: " + error.getMessage()))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
@@ -112,10 +118,38 @@ public class MessageSender {
 
         return client
                 .post()
+                .uri("/sendMessage")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
                 .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
+    }
+
+    public Mono<ResponseEntity<String>> answerCallback(String callbackQueryId, String message, boolean showAlert) {
+        ObjectNode callbackJson = mapper.createObjectNode();
+        callbackJson.put("callback_query_id", callbackQueryId);
+        callbackJson.put("text", message);
+        callbackJson.put("show_alert", showAlert);
+
+        String payload;
+        try {
+            payload = mapper.writeValueAsString(callbackJson);
+        } catch (JsonProcessingException e) {
+            return Mono.error(e);
+        }
+
+        return client
+                .post()
+                .uri("/answerCallbackQuery")
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(String.class)
+                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
+                .map(ResponseEntity::ok);
+    }
+
+    private String createCallbackJson(String action, String option, Long chatId) {
+       return action + ":" + option + ":" + chatId.toString();
     }
 }

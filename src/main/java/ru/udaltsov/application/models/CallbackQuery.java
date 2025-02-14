@@ -5,23 +5,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CallbackQuery {
 
     @JsonProperty("id")
-    private int id;
+    private String id;
 
+    @JsonProperty("from")
     private User from;
 
-    private Message message; // The original message associated with the callback
+    @JsonProperty("message")
+    private Message message;
 
     @JsonProperty("chat_instance")
     private String chatInstance;
 
-    private String data; // The callback data sent from inline keyboard
+    @JsonProperty("data")
+    private String data; // This contains your JSON-encoded callback data
 
-    // Getters and setters
-    public int getId() {
+    // Getters and Setters
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

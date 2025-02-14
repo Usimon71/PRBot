@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/webhook")
-public class WebhookController {
+public class GitHubRepoWebhookController {
     @PostMapping
     public String handleWebhook(@RequestBody String payload, @RequestHeader Map<String, String> headers) throws NoSuchAlgorithmException, InvalidKeyException {
         // Log incoming payload

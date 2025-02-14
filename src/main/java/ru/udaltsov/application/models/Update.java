@@ -8,6 +8,7 @@ public class Update {
 
     private Message message;
 
+    @JsonProperty("callback_query")
     private CallbackQuery callbackQuery;
 
     // Getters and setters
