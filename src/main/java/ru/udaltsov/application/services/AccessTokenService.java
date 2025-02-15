@@ -3,7 +3,10 @@ package ru.udaltsov.application.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpHeaders;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
+import ru.udaltsov.models.Owner;
+import ru.udaltsov.models.repositories.IOwnerRepository;
 import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
 import ru.udaltsov.models.UserAccessToken;
 import org.slf4j.Logger;
@@ -26,36 +29,45 @@ public class AccessTokenService {
 
     private final WebClient auth_client;
 
-    private final WebClient repo_client;
+    private final WebClient _userClient;
 
     private final MessageSender messageSender;
 
     private final IUserAccessTokenRepository userAccessTokenRepository;
 
+    private final IOwnerRepository _ownerRepository;
+
     @Autowired
     public AccessTokenService(
             WebClient.Builder webClientBuilder,
             MessageSender messageSender,
-            IUserAccessTokenRepository userAccessTokenRepository) {
+            IUserAccessTokenRepository userAccessTokenRepository,
+            IOwnerRepository ownerRepository) {
         String baseUrl = "https://github.com/login/oauth/access_token";
         this.auth_client = webClientBuilder
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", "application/json")
                 .build();
-        String repoUrl = "https://api.github.com/user/repos";
-        this.repo_client = webClientBuilder
-                .baseUrl(repoUrl)
-                .defaultHeader("Accept", "application/vnd.github.v3+json")
-                .build();
         this.messageSender = messageSender;
         this.userAccessTokenRepository = userAccessTokenRepository;
+        _ownerRepository = ownerRepository;
+        _userClient = webClientBuilder
+                .baseUrl("https://api.github.com/user")
+                .defaultHeader(HttpHeaders.USER_AGENT, "PRBot")
+                .build();
     }
 
     public Mono<ResponseEntity<String>> Authorize(String code, String chatId) {
+        ResponseEntity<String> redirectResponse = ResponseEntity
+                .status(302)
+                .header("Location", "https://t.me/pull_requestbot")
+                .build();
         return userAccessTokenRepository.FindById(Long.parseLong(chatId))
-                .flatMap(userAccessToken ->
-                        sendRepos(Long.parseLong(chatId),
-                                userAccessToken.token()))
+                .flatMap(userAccessToken -> {
+                    return messageSender
+                            .sendMessage(Long.parseLong(chatId), "Successful identification")
+                                        .then(Mono.just(redirectResponse));
+                        })
                 .switchIfEmpty(
                         auth_client
                                 .post()
@@ -78,8 +90,24 @@ public class AccessTokenService {
                                                                                 .internalServerError()
                                                                                 .body("Failed to save user access token"));
                                                     }
-
-                                                    return sendRepos(Long.parseLong(chatId), accessToken);
+                                                    return _userClient
+                                                            .get()
+                                                            .header("Authorization", "Bearer " + accessToken)
+                                                            .retrieve()
+                                                            .bodyToMono(Map.class)
+                                                            .flatMap(map -> _ownerRepository
+                                                                    .addOwner(new Owner(
+                                                                            Long.parseLong(chatId),
+                                                                            map.get("login").toString()))
+                                                                    .flatMap(ownersInserted -> {
+                                                                        if (ownersInserted == 0) {
+                                                                            return Mono.just(ResponseEntity
+                                                                                    .internalServerError()
+                                                                                    .body("Failed to save username"));
+                                                                        }
+                                                                        return messageSender.sendMessage(Long.parseLong(chatId), "Successful identification")
+                                                                                .then(Mono.just(redirectResponse));
+                                                                    }));
                                                 });
                                     }
 
@@ -88,32 +116,5 @@ public class AccessTokenService {
                                                             .body("Failed to retrieve access token"));
                                 })
                 );
-    }
-
-    private Mono<ResponseEntity<String>> sendRepos(Long chatId, String accessToken) {
-        ResponseEntity<String> redirectResponse = ResponseEntity
-                .status(302)
-                .header("Location", "https://t.me/pull_requestbot")
-                .build();
-        return repo_client
-                .get()
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .bodyToMono(String.class)
-                .flatMap(responseBody_repo -> {
-                    List<Map<String, Object>> repos;
-                    try {
-                        repos = new ObjectMapper().readValue(responseBody_repo, new TypeReference<>() {});
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(e);
-                    }
-                    String repoNames = repos.stream()
-                            .map(repo -> (String) repo.get("name"))
-                            .collect(Collectors.joining(", "));
-
-                    // Send the message asynchronously
-                    return messageSender.sendMessage(chatId, "Repositories: " + repoNames);
-                })
-                .then(Mono.just(redirectResponse)); // Ensure the redirect happens immediately
     }
 }

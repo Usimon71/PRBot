@@ -56,6 +56,14 @@ public class CallbackProcessorService {
                         return _messageSender.answerCallback(callbackQuery.getId(), "Failed to save integration", false);
                     });
         }
+
+        if ("w".equals(decodeResult.get("type"))){
+            String webhookName = decodeResult.get("value");
+
+            Long chatId = Long.parseLong(decodeResult.get("chatid"));
+
+
+        }
         return Mono.just(ResponseEntity.badRequest().body("Invalid callback query"));
 
 
