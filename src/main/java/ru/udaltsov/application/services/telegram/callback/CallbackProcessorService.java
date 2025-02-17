@@ -16,6 +16,8 @@ public class CallbackProcessorService {
 
     private final NewIntegrationService _newIntegrationService;
 
+    private final NewWebhookService _newWebhookService;
+
     private final MessageSender _messageSender;
 
     private final GitHubWebhooksProviderService _gitHubWebhooksProviderService;
@@ -24,10 +26,12 @@ public class CallbackProcessorService {
     public CallbackProcessorService(
             NewIntegrationService newIntegrationService,
             MessageSender messageSender,
-            GitHubWebhooksProviderService gitHubWebhooksProviderService) {
+            GitHubWebhooksProviderService gitHubWebhooksProviderService,
+            NewWebhookService newWebhookService) {
         _newIntegrationService = newIntegrationService;
         _messageSender = messageSender;
         _gitHubWebhooksProviderService = gitHubWebhooksProviderService;
+        _newWebhookService = newWebhookService;
     }
 
     public Mono<ResponseEntity<String>> process(CallbackQuery callbackQuery) throws JsonProcessingException {
@@ -39,7 +43,6 @@ public class CallbackProcessorService {
 
         if ("i".equals(decodeResult.get("type"))){
             String integrationName = decodeResult.get("value");
-
             Long chatId = Long.parseLong(decodeResult.get("chatid"));
 
             return _newIntegrationService.saveIntegration(chatId, integrationName)
@@ -47,7 +50,7 @@ public class CallbackProcessorService {
                         if (result.getStatusCode().is2xxSuccessful()){
                             try {
                                 return _messageSender.answerCallback(callbackQuery.getId(), "Saved integration", false)
-                                        .then(_gitHubWebhooksProviderService.sendWebhooks(chatId));
+                                        .then(_gitHubWebhooksProviderService.sendWebhooks(chatId, integrationName));
                             } catch (IOException e) {
                                 return Mono.error(e);
                             }
@@ -59,10 +62,18 @@ public class CallbackProcessorService {
 
         if ("w".equals(decodeResult.get("type"))){
             String webhookName = decodeResult.get("value");
-
             Long chatId = Long.parseLong(decodeResult.get("chatid"));
+            String repoName = decodeResult.get("repoName");
 
+            return _newWebhookService.setupWebhook(chatId, webhookName, repoName)
+                    .flatMap(result -> {
+                        if (result.getStatusCode().is2xxSuccessful()){
+                            return _messageSender.answerCallback(callbackQuery.getId(), "Done!", false);
+                        }
 
+                        return _messageSender.answerCallback(callbackQuery.getId(), "Failed", false);
+                    }
+                    );
         }
         return Mono.just(ResponseEntity.badRequest().body("Invalid callback query"));
 

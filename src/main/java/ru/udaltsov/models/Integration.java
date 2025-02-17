@@ -1,3 +1,5 @@
 package ru.udaltsov.models;
 
-public record Integration(Long chatId, String repoName) { }
+import java.util.UUID;
+
+public record Integration(UUID id, Long chatId, String repoName) { }

@@ -1,5 +1,6 @@
 package ru.udaltsov.data_access.repositories;
 
+import io.r2dbc.spi.Parameter;
 import liquibase.exception.DatabaseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -10,6 +11,7 @@ import ru.udaltsov.models.Integration;
 import ru.udaltsov.models.repositories.IIntegrationRepository;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 @Repository
 public class IntegrationRepository implements IIntegrationRepository {
@@ -30,6 +32,7 @@ public class IntegrationRepository implements IIntegrationRepository {
                 .sql(sql)
                 .bind("chatid", chatId)
                 .map(row -> new Integration(
+                        row.get("id", UUID.class),
                         row.get("chatid", Long.class),
                         row.get("name", String.class)
                 ))
@@ -39,16 +42,20 @@ public class IntegrationRepository implements IIntegrationRepository {
     }
 
     @Override
-    public Mono<Boolean> FindIntegrationsByIdAndName(Long chatId, String name) {
+    public Mono<Integration> FindIntegrationByIdAndName(Long chatId, String name) {
         String sql = "SELECT * FROM integrations WHERE chatid = :chatid AND name = :name";
 
         return _databaseClient
                 .sql(sql)
                 .bind("chatid", chatId)
                 .bind("name", name)
-                .map(row -> true)
-                .one()
-                .switchIfEmpty(Mono.just(false));
+                .map(row -> new Integration(
+                        row.get("id", UUID.class),
+                        row.get("chatid", Long.class),
+                        row.get("name", String.class)
+                        )
+                )
+                .one();
     }
 
     @Override

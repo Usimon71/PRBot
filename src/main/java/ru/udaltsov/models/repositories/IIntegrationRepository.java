@@ -5,9 +5,10 @@ import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Integration;
 
 public interface IIntegrationRepository {
+
     Flux<Integration> FindAllIntegrationsById(Long chatId);
 
-    Mono<Boolean> FindIntegrationsByIdAndName(Long chatId, String name);
+    Mono<Integration> FindIntegrationByIdAndName(Long chatId, String name);
 
     Mono<Long> DeleteIntegration(Integration integration);
 

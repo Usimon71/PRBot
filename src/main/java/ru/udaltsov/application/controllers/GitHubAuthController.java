@@ -1,6 +1,6 @@
 package ru.udaltsov.application.controllers;
 
-import ru.udaltsov.application.services.AccessTokenService;
+import ru.udaltsov.application.services.telegram.messages.AccessTokenService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -21,6 +21,6 @@ public class GitHubAuthController {
             @RequestParam("code") String code,
             @RequestParam("state") String chatId) {
 
-        return _accessTokenService.Authorize(code, chatId);
+        return _accessTokenService.authorize(code, chatId);
     }
 }

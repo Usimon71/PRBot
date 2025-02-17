@@ -22,14 +22,15 @@ public class GitHubWebhooksProviderService {
         _messageSender = messageSender;
     }
 
-    public Mono<ResponseEntity<String>> sendWebhooks(Long chatId) throws IOException {
+    public Mono<ResponseEntity<String>> sendWebhooks(Long chatId, String repoName) throws IOException {
         JsonNode options = readJsonFile("webhook_options.json");
 
         return _messageSender.sendMessage(
                 chatId,
                 "What you'd like to track?",
                 options,
-                "w"
+                "w",
+                repoName
                 );
     }
 

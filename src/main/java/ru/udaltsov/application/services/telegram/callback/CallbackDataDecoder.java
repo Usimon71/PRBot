@@ -16,6 +16,10 @@ public class CallbackDataDecoder {
         result.put("value", decodedArr[1]);
         result.put("chatid", decodedArr[2]);
 
+        if (decodedArr.length > 3) {
+            result.put("repoName", decodedArr[3]);
+        }
+
        return result;
     }
 }

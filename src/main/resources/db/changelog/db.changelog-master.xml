@@ -10,4 +10,6 @@
     <include file="db/changelog/changes/003-alter-table-integrations.sql"/>
     <include file="db/changelog/changes/004-alter-table-integrations.sql"/>
     <include file="/db/changelog/changes/005-create-table-owners.sql"/>
+    <include file="db/changelog/changes/006-create-table-webhooks.sql"/>
+    <include file="db/changelog/changes/007-alter-table-webhooks.sql"/>
 </databaseChangeLog>

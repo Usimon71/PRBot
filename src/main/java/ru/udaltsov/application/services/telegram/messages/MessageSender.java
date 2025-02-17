@@ -98,7 +98,12 @@ public class MessageSender {
                 .map(ResponseEntity::ok);
     }
 
-    public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message, JsonNode options, String replyType) {
+    public Mono<ResponseEntity<String>> sendMessage(
+            Long chatId,
+            String message,
+            JsonNode options,
+            String replyType,
+            String repoName) {
         // Root JSON object
         ObjectNode messageJson = mapper.createObjectNode();
         messageJson.put("chat_id", chatId);
@@ -115,7 +120,7 @@ public class MessageSender {
 
             ObjectNode button = mapper.createObjectNode();
             button.put("text", pair.get(0).asText());
-            String encodedCallback = createCallbackJson(replyType, pair.get(1).asText(), chatId);
+            String encodedCallback = createCallbackJson(replyType, pair.get(1).asText(), chatId, repoName);
             button.put("callback_data", encodedCallback);
             row.add(button);
             keyboardArray.add(row);
@@ -196,5 +201,9 @@ public class MessageSender {
 
     private String createCallbackJson(String action, String option, Long chatId) {
        return action + ":" + option + ":" + chatId.toString();
+    }
+
+    private String createCallbackJson(String action, String option, Long chatId, String repoName) {
+        return action + ":" + option + ":" + chatId.toString() + ":" + repoName;
     }
 }

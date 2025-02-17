@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
 import ru.udaltsov.data_access.repositories.UserAccessTokenRepository;
+import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
 
 import java.util.*;
 
@@ -20,13 +21,13 @@ public class IntegrationProviderService {
 
     private final WebClient _repoClient;
 
-    private final UserAccessTokenRepository _userAccessTokenRepository;
+    private final IUserAccessTokenRepository _userAccessTokenRepository;
 
     @Autowired
     public IntegrationProviderService(
             MessageSender messageSender,
             WebClient.Builder webClientBuilder,
-            UserAccessTokenRepository userAccessTokenRepository) {
+            IUserAccessTokenRepository userAccessTokenRepository) {
         _messageSender = messageSender;
 
         String repoUrl = "https://api.github.com/user/repos";
@@ -43,6 +44,7 @@ public class IntegrationProviderService {
                 .flatMap(userAccessToken ->
                    _repoClient
                         .get()
+                           .uri(uriBuilder -> uriBuilder.queryParam("type", "owner").build())
                         .header("Authorization", "Bearer " + userAccessToken.token())
                         .retrieve()
                         .bodyToMono(String.class)
