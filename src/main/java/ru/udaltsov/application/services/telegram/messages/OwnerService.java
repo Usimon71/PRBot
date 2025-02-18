@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.telegram.messages.exceptions.UserRequestException;
 import ru.udaltsov.models.Owner;
 import ru.udaltsov.models.repositories.IOwnerRepository;
 
@@ -49,5 +50,10 @@ public class OwnerService {
                                 return Mono.just(true);
                             });
                 });
+    }
+
+    public Mono<String> findOwnerByChatId(String chatId) {
+        return _ownerRepository.getOwnerById(Long.parseLong(chatId))
+                .map(Owner::owner);
     }
 }

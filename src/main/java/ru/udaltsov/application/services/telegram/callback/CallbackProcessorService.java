@@ -62,7 +62,7 @@ public class CallbackProcessorService {
 
         if ("w".equals(decodeResult.get("type"))){
             String webhookName = decodeResult.get("value");
-            Long chatId = Long.parseLong(decodeResult.get("chatid"));
+            String chatId = decodeResult.get("chatid");
             String repoName = decodeResult.get("repoName");
 
             return _newWebhookService.setupWebhook(chatId, webhookName, repoName)
