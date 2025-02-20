@@ -10,6 +10,8 @@ import ru.udaltsov.models.Webhook;
 import ru.udaltsov.models.repositories.IOwnerRepository;
 import ru.udaltsov.models.repositories.IWebhookRepository;
 
+import java.util.UUID;
+
 @Service
 public class WebhookService {
 
@@ -62,6 +64,13 @@ public class WebhookService {
                     return Mono.just(true);
                 })
         ;
+    }
+
+    public Mono<Boolean> hasWebhook(UUID integrationId, String webhookName) {
+        return _webhookRepository.findAllById(integrationId)
+                .filter(webhook -> (webhookName.equals(webhook.webhook())))
+                .hasElements();
+
     }
 
     private String getBodyConfig(String webhookName) {

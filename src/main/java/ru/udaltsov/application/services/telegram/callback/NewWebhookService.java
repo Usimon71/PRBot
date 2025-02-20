@@ -36,12 +36,16 @@ public class NewWebhookService {
     }
 
     public Mono<ResponseEntity<String>> setupWebhook(String chatId, String webhook, String repoName) {
-        return _userService.findUserToken(chatId)
-                .flatMap(token -> _ownerService.findOwnerByChatId(chatId)
-                        .flatMap(owner -> sendAndProcessWebhook(new WebhookInfo(chatId, webhook, repoName, token)))
-                )
-                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().body("User token or owner not found")))
-                .onErrorResume(WebhookSetupException.class, this::handleSetupWebhookError);
+        return hasWebhook(chatId, repoName, webhook)
+                .flatMap(has -> has ?
+                        Mono.just(ResponseEntity.ok("Webhook already exists"))
+                        : _userService.findUserToken(chatId)
+                            .flatMap(token -> _ownerService.findOwnerByChatId(chatId)
+                                    .flatMap(owner -> sendAndProcessWebhook(new WebhookInfo(chatId, webhook, repoName, token)))
+                            )
+                            .switchIfEmpty(Mono.just(ResponseEntity.badRequest().body("User token or owner not found")))
+                            .onErrorResume(WebhookSetupException.class, this::handleSetupWebhookError)
+                );
     }
 
     private Mono<ResponseEntity<String>> sendAndProcessWebhook(WebhookInfo webhookInfo) {
@@ -64,5 +68,11 @@ public class NewWebhookService {
 
     private Mono<ResponseEntity<String>> handleSetupWebhookError(WebhookSetupException ex) {
         return Mono.just(ResponseEntity.internalServerError().body("Error setting up webhook: " + ex.getMessage()));
+    }
+
+    private Mono<Boolean> hasWebhook(String chatId, String repoName, String webhookName) {
+        return _integrationRepository.FindIntegrationByIdAndName(Long.parseLong(chatId), repoName)
+                .flatMap(integration -> _webhookService.hasWebhook(integration.id(), webhookName))
+                .switchIfEmpty(Mono.error(new RuntimeException("Integration not found")));
     }
 }
