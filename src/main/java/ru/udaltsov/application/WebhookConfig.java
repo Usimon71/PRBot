@@ -28,6 +28,7 @@ public class WebhookConfig {
             "config": {
                 "url": "%s",
                 "content_type": "json",
+                "secret": "hello",
                 "insecure_ssl": "0"
             }
         }

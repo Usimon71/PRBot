@@ -1,4 +1,4 @@
-package ru.udaltsov.application.services.telegram.messages;
+package ru.udaltsov.application.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -55,5 +55,10 @@ public class OwnerService {
     public Mono<String> findOwnerByChatId(String chatId) {
         return _ownerRepository.getOwnerById(Long.parseLong(chatId))
                 .map(Owner::owner);
+    }
+
+    public Mono<Long> findChatIdByOwnerName(String ownerName) {
+        return _ownerRepository.getOwnerByOwnerName(ownerName)
+                .map(Owner::chatId);
     }
 }

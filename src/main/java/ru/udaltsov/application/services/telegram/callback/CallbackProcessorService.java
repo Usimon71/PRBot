@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
-import ru.udaltsov.application.models.CallbackQuery;
+import ru.udaltsov.application.models.update.CallbackQuery;
 import ru.udaltsov.application.services.telegram.messages.commands.GitHubWebhooksProviderService;
 
 import java.io.IOException;

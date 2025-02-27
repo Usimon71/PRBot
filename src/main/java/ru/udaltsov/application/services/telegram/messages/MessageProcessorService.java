@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import ru.udaltsov.application.models.Message;
+import ru.udaltsov.application.models.update.Message;
 import ru.udaltsov.application.services.telegram.messages.commands.ConnectService;
 import ru.udaltsov.application.services.telegram.messages.commands.IntegrationProviderService;
 

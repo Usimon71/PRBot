@@ -53,4 +53,22 @@ public class OwnerRepository implements IOwnerRepository {
                 .onErrorResume(SQLException.class, e ->
                         Mono.error(new DatabaseException("Database error occurred", e)));
     }
+
+    @Override
+    public Mono<Owner> getOwnerByOwnerName(String ownerName) {
+        String sql = "SELECT * FROM owners " +
+                "WHERE owner = :owner";
+
+        return _databaseClient
+                .sql(sql)
+                .bind("owner", ownerName)
+                .map(row -> new Owner(
+                        row.get("chatid", Long.class),
+                        row.get("owner", String.class)
+                ))
+                .one()
+                .switchIfEmpty(Mono.empty())
+                .onErrorResume(SQLException.class, e ->
+                        Mono.error(new DatabaseException("Database error occurred", e)));
+    }
 }

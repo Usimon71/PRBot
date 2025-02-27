@@ -75,6 +75,7 @@ public class WebhookService {
 
     private String getBodyConfig(String webhookName) {
         String targetUrl = System.getenv("SMEE_URL");
+        String secret = System.getenv("WEBHOOK_SECRET");
 
         return """
         {
@@ -84,9 +85,10 @@ public class WebhookService {
             "config": {
                 "url": "%s",
                 "content_type": "json",
+                "secret": "%s",
                 "insecure_ssl": "0"
             }
         }
-        """.formatted(webhookName, targetUrl);
+        """.formatted(webhookName, targetUrl, secret);
     }
 }

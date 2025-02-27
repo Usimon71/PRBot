@@ -8,4 +8,6 @@ public interface IOwnerRepository {
     Mono<Long> addOwner(Owner owner);
 
     Mono<Owner> getOwnerById(Long chatId);
+
+    Mono<Owner> getOwnerByOwnerName(String ownerName);
 }

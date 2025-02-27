@@ -1,4 +1,4 @@
-package ru.udaltsov.application.models;
+package ru.udaltsov.application.models.update;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

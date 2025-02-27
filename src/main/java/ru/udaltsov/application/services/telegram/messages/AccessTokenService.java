@@ -1,5 +1,6 @@
 package ru.udaltsov.application.services.telegram.messages;
 
+import ru.udaltsov.application.services.OwnerService;
 import ru.udaltsov.application.services.telegram.messages.exceptions.TokenRequestException;
 import ru.udaltsov.application.services.telegram.messages.exceptions.UserRequestException;
 import org.springframework.beans.factory.annotation.Autowired;

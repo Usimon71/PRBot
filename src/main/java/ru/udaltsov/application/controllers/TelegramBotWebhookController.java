@@ -1,7 +1,7 @@
 package ru.udaltsov.application.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import ru.udaltsov.application.models.Update;
+import ru.udaltsov.application.models.update.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

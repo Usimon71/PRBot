@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.github.WebhookInfo;
 import ru.udaltsov.application.services.github.WebhookService;
 import ru.udaltsov.application.services.github.WebhookSetupException;
-import ru.udaltsov.application.services.telegram.messages.OwnerService;
+import ru.udaltsov.application.services.OwnerService;
 import ru.udaltsov.application.services.telegram.messages.UserService;
 import ru.udaltsov.models.Webhook;
 import ru.udaltsov.models.repositories.IIntegrationRepository;
