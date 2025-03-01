@@ -13,7 +13,6 @@ import ru.udaltsov.application.services.github.WebhookDeliveryService;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/github-webhook")
@@ -50,6 +49,8 @@ public class GitHubWebhookController {
         } catch (JsonProcessingException e) {
             return Mono.error(e);
         }
+
+
 
         // Return a 200 OK response
         return webhookDeliveryService.process(payload, eventType);

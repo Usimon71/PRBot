@@ -6,13 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.OwnerService;
+import ru.udaltsov.application.services.github.event_handlers.EventHandler;
+import ru.udaltsov.application.services.github.event_handlers.EventHandlerFactory;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
 
 @Service
 public class WebhookDeliveryService {
 
     private final OwnerService ownerService;
-
     private final MessageSender messageSender;
 
     @Autowired
@@ -24,11 +25,11 @@ public class WebhookDeliveryService {
     }
 
     public Mono<ResponseEntity<String>> process(JsonNode payload, String eventType) {
-        return ownerService.findChatIdByOwnerName(payload.get("issue").get("user").get("login").asText())
+        return ownerService.findChatIdByOwnerName(payload.get("repository").get("owner").get("login").asText())
                 .flatMap(chatId -> {
-                    String message = "Hey, %s".formatted(payload.get("issue").get("user").get("login").asText())
-                            + "!\nNew " + eventType + " for you.";
-                    return messageSender.sendMessage(chatId, message);
+                    EventHandler handler = new EventHandlerFactory().getHandler(eventType);
+                    return handler.handleEvent(payload, chatId)
+                            .flatMap(message -> messageSender.sendMessage(chatId, message));
                 });
     }
 }

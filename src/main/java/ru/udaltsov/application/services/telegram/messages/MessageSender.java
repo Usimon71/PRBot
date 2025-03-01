@@ -13,7 +13,9 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MessageSender {
@@ -33,10 +35,20 @@ public class MessageSender {
     }
 
     public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message) {
-        String payload = "{\n" +
-                "  \"chat_id\": \"" + chatId + "\",\n" +
-                "  \"text\": \"" + message + "\"\n" +
-                "}";
+        Map<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("chat_id", chatId); // chat_id should be a number, not a string
+        payloadMap.put("text", message);
+        payloadMap.put("parse_mode", "MarkdownV2");
+        payloadMap.put("disable_web_page_preview", true);
+
+        // Convert the map to a JSON string
+        String payload;
+        try {
+            payload = new ObjectMapper().writeValueAsString(payloadMap);
+        } catch (JsonProcessingException e) {
+            return Mono.error(e);
+        }
+        System.out.println(payload);
         return client
                 .post()
                 .uri("/sendMessage")
