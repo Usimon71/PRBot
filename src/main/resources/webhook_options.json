@@ -2,8 +2,6 @@
   "options" : [
     ["pull requests" ,  "pull_request"],
     ["pull request review comments" ,  "pull_request_review_comment"],
-    ["pull request reviews" ,  "pull_request_review"],
-    ["issues" ,  "issues"],
-    ["issue comments" ,  "issue_comment"]
+    ["pull request reviews" ,  "pull_request_review"]
   ]
 }

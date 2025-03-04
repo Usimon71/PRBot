@@ -10,6 +10,7 @@ public class EventHandlerFactory {
         handlers.put("issues", new IssueEventHandler());
         handlers.put("pull_request", new PullRequestEventHandler());
         handlers.put("issue_comment", new IssueCommentEventHandler());
+        handlers.put("pull_request_review", new PullRequestReviewEventHandler());
     }
 
     public EventHandler getHandler(String eventType) {
