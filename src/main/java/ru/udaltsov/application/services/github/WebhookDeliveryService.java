@@ -11,8 +11,6 @@ import ru.udaltsov.application.services.github.event_handlers.EventHandler;
 import ru.udaltsov.application.services.github.event_handlers.EventHandlerFactory;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
 
-import java.util.Optional;
-
 @Service
 public class WebhookDeliveryService {
 

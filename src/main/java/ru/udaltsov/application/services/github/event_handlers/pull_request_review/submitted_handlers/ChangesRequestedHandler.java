@@ -6,8 +6,6 @@ import ru.udaltsov.application.services.github.event_handlers.EventHandleResult;
 import ru.udaltsov.application.services.github.event_handlers.EventHandler;
 import ru.udaltsov.application.services.github.event_handlers.EventMessageFormatter;
 
-import java.util.logging.Handler;
-
 public class ChangesRequestedHandler implements EventHandler {
     @Override
     public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
