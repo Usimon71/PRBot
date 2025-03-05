@@ -4,5 +4,5 @@ import com.fasterxml.jackson.databind.JsonNode;
 import reactor.core.publisher.Mono;
 
 public interface EventHandler {
-    Mono<String> handleEvent(JsonNode payload, Long chatId);
+    Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId);
 }

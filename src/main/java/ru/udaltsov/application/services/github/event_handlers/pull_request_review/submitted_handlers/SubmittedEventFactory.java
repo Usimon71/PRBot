@@ -12,6 +12,7 @@ public class SubmittedEventFactory {
     public SubmittedEventFactory() {
         handlers.put("approved", new ApprovedHandler());
         handlers.put("changes_requested", new ChangesRequestedHandler());
+        handlers.put("commented", new CommentedHandler());
     }
 
     public EventHandler getHandler(String eventType) {

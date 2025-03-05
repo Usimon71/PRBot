@@ -1,7 +1,6 @@
 package ru.udaltsov.application.services.github.event_handlers.pull_request_review;
 
 import ru.udaltsov.application.services.github.event_handlers.EventHandler;
-import ru.udaltsov.application.services.github.event_handlers.pull_request.OpenedHandler;
 
 import java.util.HashMap;
 import java.util.Map;

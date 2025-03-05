@@ -6,9 +6,15 @@ import ru.udaltsov.application.services.github.event_handlers.pull_request.PREve
 
 public class PullRequestEventHandler implements EventHandler {
     @Override
-    public Mono<String> handleEvent(JsonNode payload, Long chatId) {
+    public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         String action = payload.get("action").asText();
 
-        return new PREventHandlerFactory().getHandler(action).handleEvent(payload, chatId);
+        System.out.println("Action: " + action);
+
+        EventHandler handler = new PREventHandlerFactory().getHandler(action);
+        if (handler == null) {
+            return Mono.just(new EventHandleResult.EventNotSupported());
+        }
+        return handler.handleEvent(payload, chatId);
     }
 }

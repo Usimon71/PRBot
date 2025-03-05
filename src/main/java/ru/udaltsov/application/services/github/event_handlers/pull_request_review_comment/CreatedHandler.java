@@ -1,4 +1,4 @@
-package ru.udaltsov.application.services.github.event_handlers.pull_request;
+package ru.udaltsov.application.services.github.event_handlers.pull_request_review_comment;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import reactor.core.publisher.Mono;
@@ -6,23 +6,27 @@ import ru.udaltsov.application.services.github.event_handlers.EventHandleResult;
 import ru.udaltsov.application.services.github.event_handlers.EventHandler;
 import ru.udaltsov.application.services.github.event_handlers.EventMessageFormatter;
 
-public class ReopenedHandler implements EventHandler {
+public class CreatedHandler implements EventHandler {
     @Override
     public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         var pullRequest = payload.get("pull_request");
-        var user = pullRequest.get("user");
         var repository = payload.get("repository");
+        var comment = payload.get("comment");
 
         String repoName = EventMessageFormatter.escapeMarkdownV2(EventMessageFormatter.extractRepoName(repository.get("full_name").asText("Unknown Repository")));
         String prTitle = EventMessageFormatter.escapeMarkdownV2(pullRequest.get("title").asText("Untitled"));
-        String prNumber = "\\#" + pullRequest.get("number").asText("0"); // Escape #
-        String userLogin = "@" + EventMessageFormatter.escapeMarkdownV2(user.get("login").asText("Unknown User")); // Plain text, no link
-        String prUrl = pullRequest.get("html_url").asText("");
-        String userUrl = user.get("html_url").asText("");
+        String prNumber = "\\#" + pullRequest.get("number").asText("0");
+
+        var commenter = comment.get("user");
+        String commenterLogin = EventMessageFormatter.escapeMarkdownV2("@" + comment.get("login").asText());
+        String commenterUrl = commenter.get("html_url").asText();
+
+        String commentBody = EventMessageFormatter.escapeMarkdownV2(comment.get("body").asText());
+        String commentUrl = comment.get("html_url").asText();
 
         String message = String.format(
-                "🔓 *Pull request reopened* [%s %s%s](%s)\nby [%s](%s)\n",
-                repoName, prTitle, prNumber, prUrl, userLogin, userUrl
+                "💬 **New comment on review** [%s %s%s]\nby [%s](%s)\n\n%s\n\n[View comment](%s)",
+                repoName, prTitle, prNumber, commenterLogin, commenterUrl, commentBody, commentUrl
         );
 
         return Mono.just(new EventHandleResult.Success(message));

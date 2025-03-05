@@ -2,15 +2,20 @@ package ru.udaltsov.application.services.github.event_handlers.pull_request_revi
 
 import com.fasterxml.jackson.databind.JsonNode;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.github.event_handlers.EventHandleResult;
 import ru.udaltsov.application.services.github.event_handlers.EventHandler;
 import ru.udaltsov.application.services.github.event_handlers.EventMessageFormatter;
 import ru.udaltsov.application.services.github.event_handlers.pull_request_review.submitted_handlers.SubmittedEventFactory;
 
 public class SubmittedHandler implements EventHandler {
     @Override
-    public Mono<String> handleEvent(JsonNode payload, Long chatId) {
+    public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         String state = payload.get("review").get("state").asText();
+        var handler = new SubmittedEventFactory().getHandler(state);
+        if (handler == null) {
+            return Mono.just(new EventHandleResult.EventNotSupported());
+        }
 
-        return new SubmittedEventFactory().getHandler(state).handleEvent(payload, chatId);
+        return handler.handleEvent(payload, chatId);
     }
 }

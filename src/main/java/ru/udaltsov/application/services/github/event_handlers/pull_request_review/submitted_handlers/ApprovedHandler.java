@@ -2,14 +2,14 @@ package ru.udaltsov.application.services.github.event_handlers.pull_request_revi
 
 import com.fasterxml.jackson.databind.JsonNode;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.github.event_handlers.EventHandleResult;
 import ru.udaltsov.application.services.github.event_handlers.EventHandler;
 import ru.udaltsov.application.services.github.event_handlers.EventMessageFormatter;
 
 public class ApprovedHandler implements EventHandler {
     @Override
-    public Mono<String> handleEvent(JsonNode payload, Long chatId) {
+    public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         var pullRequest = payload.get("pull_request");
-        var user = pullRequest.get("user");
         var repository = payload.get("repository");
 
         String repoName = EventMessageFormatter.escapeMarkdownV2(EventMessageFormatter.extractRepoName(repository.get("full_name").asText("Unknown Repository")));
@@ -20,7 +20,7 @@ public class ApprovedHandler implements EventHandler {
         String reviewUrl = review.get("html_url").asText("Untitled");
 
         var reviewer = review.get("user");
-        String reviewerLogin = EventMessageFormatter.escapeMarkdownV2(reviewer.get("login").asText());
+        String reviewerLogin = EventMessageFormatter.escapeMarkdownV2("@" + reviewer.get("login").asText());
         String reviewerUrl = reviewer.get("html_url").asText();
 
         String message = String.format(
@@ -28,7 +28,6 @@ public class ApprovedHandler implements EventHandler {
                 repoName, prTitle, prNumber, reviewUrl, reviewerLogin, reviewerUrl
         );
 
-
-        return Mono.just(message);
+        return Mono.just(new EventHandleResult.Success(message));
     }
 }

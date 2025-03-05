@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 
 public class IssueCommentEventHandler implements EventHandler {
     @Override
-    public Mono<String> handleEvent(JsonNode payload, Long chatId) {
+    public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         var comment = payload.get("comment");
         var issue = payload.get("issue");
         var user = comment.get("user");
@@ -29,7 +29,6 @@ public class IssueCommentEventHandler implements EventHandler {
                 repoName, issueTitle, issueNumber, issueUrl, commenterLogin, commenterUrl, commentBody, commentUrl
         );
 
-        System.out.println("Issue Comment Event Message: " + message);
-        return Mono.just(message);
+        return Mono.just(new EventHandleResult.Success(message));
     }
 }

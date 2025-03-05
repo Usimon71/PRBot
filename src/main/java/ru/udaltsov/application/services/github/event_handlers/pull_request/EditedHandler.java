@@ -2,12 +2,13 @@ package ru.udaltsov.application.services.github.event_handlers.pull_request;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.github.event_handlers.EventHandleResult;
 import ru.udaltsov.application.services.github.event_handlers.EventHandler;
 import ru.udaltsov.application.services.github.event_handlers.EventMessageFormatter;
 
 public class EditedHandler implements EventHandler {
     @Override
-    public Mono<String> handleEvent(JsonNode payload, Long chatId) {
+    public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         var pullRequest = payload.get("pull_request");
         var user = pullRequest.get("user");
         var repository = payload.get("repository");
@@ -25,6 +26,6 @@ public class EditedHandler implements EventHandler {
                 repoName, prTitle, prNumber, prUrl, userLogin, userUrl, prBody
         );
 
-        return Mono.just(message);
+        return Mono.just(new EventHandleResult.Success(message));
     }
 }
