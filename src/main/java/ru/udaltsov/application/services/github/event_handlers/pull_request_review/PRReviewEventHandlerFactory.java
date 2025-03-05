@@ -10,7 +10,7 @@ public class PRReviewEventHandlerFactory {
     private final Map<String, EventHandler> handlers = new HashMap<>();
 
     public PRReviewEventHandlerFactory() {
-        handlers.put("submitted", new OpenedHandler());
+        handlers.put("submitted", new SubmittedHandler());
     }
 
     public EventHandler getEventHandler(String eventType) {

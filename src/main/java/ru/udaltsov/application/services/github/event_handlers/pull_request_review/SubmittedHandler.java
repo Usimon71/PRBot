@@ -12,23 +12,5 @@ public class SubmittedHandler implements EventHandler {
         String state = payload.get("review").get("state").asText();
 
         return new SubmittedEventFactory().getHandler(state).handleEvent(payload, chatId);
-
-        var pullRequest = payload.get("pull_request");
-        var user = pullRequest.get("user");
-        var repository = payload.get("repository");
-
-        String repoName = EventMessageFormatter.escapeMarkdownV2(EventMessageFormatter.extractRepoName(repository.get("full_name").asText("Unknown Repository")));
-        String prTitle = EventMessageFormatter.escapeMarkdownV2(pullRequest.get("title").asText("Untitled"));
-        String prNumber = "\\#" + pullRequest.get("number").asText("0");
-
-        var review = payload.get("review");
-        String reviewUrl = review.get("html_url").asText("Untitled");
-
-        var reviewer = review.get("user");
-        String reviewerLogin = reviewer.get("login").asText();
-        String reviewerUrl = reviewer.get("html_url").asText();
-
-
-
     }
 }

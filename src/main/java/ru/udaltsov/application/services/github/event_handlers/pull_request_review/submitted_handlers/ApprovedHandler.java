@@ -20,10 +20,15 @@ public class ApprovedHandler implements EventHandler {
         String reviewUrl = review.get("html_url").asText("Untitled");
 
         var reviewer = review.get("user");
-        String reviewerLogin = reviewer.get("login").asText();
+        String reviewerLogin = EventMessageFormatter.escapeMarkdownV2(reviewer.get("login").asText());
         String reviewerUrl = reviewer.get("html_url").asText();
 
+        String message = String.format(
+                "✅ *Pull request approved* [%s %s%s](%s)\nby [%s](%s)\n",
+                repoName, prTitle, prNumber, reviewUrl, reviewerLogin, reviewerUrl
+        );
 
-        return null;
+
+        return Mono.just(message);
     }
 }
