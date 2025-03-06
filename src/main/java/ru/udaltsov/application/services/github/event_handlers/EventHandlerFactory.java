@@ -11,7 +11,7 @@ public class EventHandlerFactory {
         handlers.put("pull_request", new PullRequestEventHandler());
         handlers.put("issue_comment", new IssueCommentEventHandler());
         handlers.put("pull_request_review", new PullRequestReviewEventHandler());
-        handlers.put("pull_request_review_comment", new PRReviewtCommentEventHandler());
+        handlers.put("pull_request_review_comment", new PRReviewCommentEventHandler());
     }
 
     public EventHandler getHandler(String eventType) {

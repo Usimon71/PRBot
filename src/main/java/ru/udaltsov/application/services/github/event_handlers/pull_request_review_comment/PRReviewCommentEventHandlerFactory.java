@@ -10,6 +10,7 @@ public class PRReviewCommentEventHandlerFactory {
 
     public PRReviewCommentEventHandlerFactory() {
         handlers.put("created", new CreatedHandler());
+        handlers.put("deleted", new DeletedHandler());
     }
 
     public EventHandler getHandler(String eventType) {
