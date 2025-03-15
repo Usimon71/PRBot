@@ -10,12 +10,12 @@ import ru.udaltsov.application.services.github.WebhookSetupException;
 import ru.udaltsov.application.services.OwnerService;
 import ru.udaltsov.application.services.telegram.messages.UserService;
 import ru.udaltsov.models.Webhook;
-import ru.udaltsov.models.repositories.IIntegrationRepository;
+import ru.udaltsov.models.repositories.IntegrationRepository;
 
 @Service
 public class NewWebhookService {
 
-    private final IIntegrationRepository _integrationRepository;
+    private final IntegrationRepository _integrationRepository;
 
     private final UserService _userService;
 
@@ -25,7 +25,7 @@ public class NewWebhookService {
 
     @Autowired
     NewWebhookService(
-            IIntegrationRepository integrationRepository,
+            IntegrationRepository integrationRepository,
             UserService userService,
             OwnerService ownerService,
             WebhookService webhookService) {

@@ -27,9 +27,10 @@ public class GitHubWebhookController {
     @PostMapping
     public Mono<ResponseEntity<String>> handleWebhook(@RequestHeader("X-GitHub-Event") String eventType,
                                                       @RequestHeader("x-hub-signature-256") String signature,
+                                                      @RequestHeader("X-GitHub-Hook-ID") String hookId,
                                                       @RequestBody String stringPayload) throws NoSuchAlgorithmException, InvalidKeyException {
-        // Log incoming payload
         System.out.println("Webhook received!");
+        System.out.println(hookId);
 
         boolean compareResult = HMACDigestComparator.compare(
                 HMACSha256Generator.generate(System.getenv("WEBHOOK_SECRET"), stringPayload),
@@ -50,9 +51,6 @@ public class GitHubWebhookController {
             return Mono.error(e);
         }
 
-
-
-        // Return a 200 OK response
         return webhookDeliveryService.process(payload, eventType);
     }
 }

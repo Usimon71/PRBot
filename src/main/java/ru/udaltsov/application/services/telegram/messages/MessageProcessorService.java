@@ -6,21 +6,24 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.models.update.Message;
 import ru.udaltsov.application.services.telegram.messages.commands.ConnectService;
+import ru.udaltsov.application.services.telegram.messages.commands.IntegrationsDeleteProviderService;
 import ru.udaltsov.application.services.telegram.messages.commands.IntegrationProviderService;
 
 @Service
 public class MessageProcessorService {
 
-    private final ConnectService _connectService;
-
-    private final IntegrationProviderService _integrationProviderService;
+    private final ConnectService connectService;
+    private final IntegrationProviderService integrationProviderService;
+    private final IntegrationsDeleteProviderService deleteIntegrationService;
 
     @Autowired
     public MessageProcessorService(
             ConnectService connectService,
-            IntegrationProviderService integrationProviderService) {
-        _connectService = connectService;
-        _integrationProviderService = integrationProviderService;
+            IntegrationProviderService integrationProviderService,
+            IntegrationsDeleteProviderService deleteIntegrationService) {
+        this.connectService = connectService;
+        this.integrationProviderService = integrationProviderService;
+        this.deleteIntegrationService = deleteIntegrationService;
     }
 
     public Mono<ResponseEntity<String>> process(Message message) {
@@ -33,16 +36,22 @@ public class MessageProcessorService {
         int length = entities.get(0).getLength();
         String command = message.getText().substring(offset, offset + length);
 
-        if ("/connect".equals(command)) {
-            Long chatId = message.getChat().getId();
+        switch (command) {
+            case "/connect" -> {
+                Long chatId = message.getChat().getId();
 
-            return _connectService.ProvideAuthorizeLink(chatId);
-        }
+                return connectService.ProvideAuthorizeLink(chatId);
+            }
+            case "/new_integration" -> {
+                Long chatId = message.getChat().getId();
 
-        if ("/new_integration".equals(command)) {
-            Long chatId = message.getChat().getId();
+                return integrationProviderService.sendRepositories(chatId);
+            }
+            case "/delete_integration" -> {
+                Long chatId = message.getChat().getId();
 
-            return _integrationProviderService.sendRepositories(chatId);
+                return deleteIntegrationService.deleteIntegration(chatId);
+            }
         }
 
         return Mono.just(ResponseEntity.ok("Unsupported command: " + command));

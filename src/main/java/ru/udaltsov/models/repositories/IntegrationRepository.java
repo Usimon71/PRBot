@@ -4,13 +4,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Integration;
 
-public interface IIntegrationRepository {
+import java.util.UUID;
+
+public interface IntegrationRepository {
 
     Flux<Integration> FindAllIntegrationsById(Long chatId);
 
     Mono<Integration> FindIntegrationByIdAndName(Long chatId, String name);
 
-    Mono<Long> DeleteIntegration(Integration integration);
+    Mono<Long> DeleteIntegrationById(UUID integrationId);
 
     Mono<Long> AddIntegration(Integration integration);
 }

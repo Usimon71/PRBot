@@ -1,6 +1,5 @@
 package ru.udaltsov.data_access.repositories;
 
-import io.r2dbc.spi.Parameter;
 import liquibase.exception.DatabaseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -8,18 +7,18 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Integration;
-import ru.udaltsov.models.repositories.IIntegrationRepository;
+import ru.udaltsov.models.repositories.IntegrationRepository;
 
 import java.sql.SQLException;
 import java.util.UUID;
 
 @Repository
-public class IntegrationRepository implements IIntegrationRepository {
+public class IntegrationRepositoryImpl implements IntegrationRepository {
 
     private final DatabaseClient _databaseClient;
 
     @Autowired
-    public IntegrationRepository(DatabaseClient databaseClient) {
+    public IntegrationRepositoryImpl(DatabaseClient databaseClient) {
         _databaseClient = databaseClient;
     }
 
@@ -59,14 +58,13 @@ public class IntegrationRepository implements IIntegrationRepository {
     }
 
     @Override
-    public Mono<Long> DeleteIntegration(Integration integration) {
+    public Mono<Long> DeleteIntegrationById(UUID integrationId) {
         String sql = "DELETE FROM integrations " +
-                "WHERE chatid = :chatid AND name = :name";
+                "WHERE id = :id";
 
         return _databaseClient
                 .sql(sql)
-                .bind("chatid", integration.chatId())
-                .bind("name", integration.repoName())
+                .bind("id", integrationId)
                 .fetch()
                 .rowsUpdated()
                 .onErrorResume(SQLException.class, e ->

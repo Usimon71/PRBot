@@ -4,17 +4,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Integration;
-import ru.udaltsov.models.repositories.IIntegrationRepository;
+import ru.udaltsov.models.repositories.IntegrationRepository;
 
 import java.util.UUID;
 
 @Service
 public class NewIntegrationService {
 
-    private final IIntegrationRepository _integrationRepository;
+    private final IntegrationRepository _integrationRepository;
 
     public NewIntegrationService(
-            IIntegrationRepository integrationRepository) {
+            IntegrationRepository integrationRepository) {
         _integrationRepository = integrationRepository;
     }
 

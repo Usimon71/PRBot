@@ -73,6 +73,10 @@ public class WebhookService {
 
     }
 
+//    public Mono<Boolean> deleteWebhooks(String repoName) {
+//
+//    }
+
     private String getBodyConfig(String webhookName) {
         String targetUrl = System.getenv("SMEE_URL");
         String secret = System.getenv("WEBHOOK_SECRET");

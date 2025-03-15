@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import ru.udaltsov.models.Integration;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -139,6 +140,46 @@ public class MessageSender {
         }
         replyMarkup.set("inline_keyboard", keyboardArray);
 
+        messageJson.set("reply_markup", replyMarkup);
+
+        String payload;
+        try {
+            payload = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(messageJson);
+        } catch (JsonProcessingException e) {
+            return Mono.error(e);
+        }
+
+        return client
+                .post()
+                .uri("/sendMessage")
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnError(error -> System.err.println("Telegram API Error: " + error.getMessage()))
+                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
+                .map(ResponseEntity::ok);
+    }
+
+    public Mono<ResponseEntity<String>> sendIntegrations(Long chatId, List<Integration> integrations) {
+        ObjectNode messageJson = mapper.createObjectNode();
+        messageJson.put("chat_id", chatId);
+        messageJson.put("text", "Select repositories to delete:");
+
+        ObjectNode replyMarkup = mapper.createObjectNode();
+        ArrayNode keyboardArray = mapper.createArrayNode();
+
+        for (Integration integration : integrations) {
+            ArrayNode row = mapper.createArrayNode();
+
+            ObjectNode button = mapper.createObjectNode();
+            button.put("text", integration.repoName());
+            String encodedCallback = createCallbackJson("di", integration.id().toString(), chatId);
+            button.put("callback_data", encodedCallback);
+            row.add(button);
+            keyboardArray.add(row);
+        }
+
+        replyMarkup.set("inline_keyboard", keyboardArray);
         messageJson.set("reply_markup", replyMarkup);
 
         String payload;

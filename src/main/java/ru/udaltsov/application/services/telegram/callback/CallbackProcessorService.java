@@ -14,24 +14,24 @@ import java.io.IOException;
 @Service
 public class CallbackProcessorService {
 
-    private final NewIntegrationService _newIntegrationService;
-
-    private final NewWebhookService _newWebhookService;
-
-    private final MessageSender _messageSender;
-
-    private final GitHubWebhooksProviderService _gitHubWebhooksProviderService;
+    private final NewIntegrationService newIntegrationService;
+    private final NewWebhookService newWebhookService;
+    private final MessageSender messageSender;
+    private final GitHubWebhooksProviderService gitHubWebhooksProviderService;
+    private final DeleteIntegrationService deleteIntegrationService;
 
     @Autowired
     public CallbackProcessorService(
             NewIntegrationService newIntegrationService,
             MessageSender messageSender,
             GitHubWebhooksProviderService gitHubWebhooksProviderService,
-            NewWebhookService newWebhookService) {
-        _newIntegrationService = newIntegrationService;
-        _messageSender = messageSender;
-        _gitHubWebhooksProviderService = gitHubWebhooksProviderService;
-        _newWebhookService = newWebhookService;
+            NewWebhookService newWebhookService,
+            DeleteIntegrationService deleteIntegrationService) {
+        this.newIntegrationService = newIntegrationService;
+        this.messageSender = messageSender;
+        this.gitHubWebhooksProviderService = gitHubWebhooksProviderService;
+        this.newWebhookService = newWebhookService;
+        this.deleteIntegrationService = deleteIntegrationService;
     }
 
     public Mono<ResponseEntity<String>> process(CallbackQuery callbackQuery) throws JsonProcessingException {
@@ -45,18 +45,18 @@ public class CallbackProcessorService {
             String integrationName = decodeResult.get("value");
             Long chatId = Long.parseLong(decodeResult.get("chatid"));
 
-            return _newIntegrationService.saveIntegration(chatId, integrationName)
+            return newIntegrationService.saveIntegration(chatId, integrationName)
                     .flatMap(result -> {
                         if (result.getStatusCode().is2xxSuccessful()){
                             try {
-                                return _messageSender.answerCallback(callbackQuery.getId(), "Saved integration", false)
-                                        .then(_gitHubWebhooksProviderService.sendWebhooks(chatId, integrationName));
+                                return messageSender.answerCallback(callbackQuery.getId(), "Saved integration", false)
+                                        .then(gitHubWebhooksProviderService.sendWebhooks(chatId, integrationName));
                             } catch (IOException e) {
                                 return Mono.error(e);
                             }
                         }
 
-                        return _messageSender.answerCallback(callbackQuery.getId(), "Failed to save integration", false);
+                        return messageSender.answerCallback(callbackQuery.getId(), "Failed to save integration", false);
                     });
         }
 
@@ -65,18 +65,26 @@ public class CallbackProcessorService {
             String chatId = decodeResult.get("chatid");
             String repoName = decodeResult.get("repoName");
 
-            return _newWebhookService.setupWebhook(chatId, webhookName, repoName)
+            return newWebhookService.setupWebhook(chatId, webhookName, repoName)
                     .flatMap(result -> {
                         if (result.getStatusCode().is2xxSuccessful()){
-                            return _messageSender.answerCallback(callbackQuery.getId(), "Done!", false);
+                            return messageSender.answerCallback(callbackQuery.getId(), "Done!", false);
                         }
 
-                        return _messageSender.answerCallback(callbackQuery.getId(), "Failed", false);
+                        return messageSender.answerCallback(callbackQuery.getId(), "Failed", false);
                     }
                     );
         }
+
+        if ("di".equals(decodeResult.get("type"))){
+            String integrationId = decodeResult.get("value");
+            String chatId = decodeResult.get("chatid");
+
+            return deleteIntegrationService.deleteIntegration(integrationId)
+                    .flatMap(deleted -> deleted ?
+                            messageSender.answerCallback(callbackQuery.getId(), "Deleted integration", false)
+                            : messageSender.answerCallback(callbackQuery.getId(), "Failed to delete", false));
+        }
         return Mono.just(ResponseEntity.badRequest().body("Invalid callback query"));
-
-
     }
 }
