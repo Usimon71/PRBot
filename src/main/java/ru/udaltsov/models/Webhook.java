@@ -2,5 +2,5 @@ package ru.udaltsov.models;
 
 import java.util.UUID;
 
-public record Webhook(UUID id, String webhook) {
+public record Webhook(UUID integrationId, String webhook, Long webhookId) {
 }

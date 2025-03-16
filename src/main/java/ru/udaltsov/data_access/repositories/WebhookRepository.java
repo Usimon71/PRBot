@@ -25,12 +25,13 @@ public class WebhookRepository implements IWebhookRepository {
     @Override
     public Mono<Long> addWebhook(Webhook webhook) {
         String sql = "INSERT INTO webhooks" +
-                " VALUES (:id, :webhook)";
+                " VALUES (:integration_id, :webhook, :webhook_id)";
 
         return _databaseClient
                 .sql(sql)
-                .bind("id", webhook.id())
+                .bind("integration_id", webhook.integrationId())
                 .bind("webhook", webhook.webhook())
+                .bind("webhook_id", webhook.webhookId())
                 .fetch()
                 .rowsUpdated()
                 .onErrorResume(SQLException.class, e ->
