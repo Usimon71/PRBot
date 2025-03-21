@@ -1,5 +1,6 @@
 package ru.udaltsov.application.services.github;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -8,36 +9,36 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Webhook;
 import ru.udaltsov.models.repositories.IOwnerRepository;
-import ru.udaltsov.models.repositories.IWebhookRepository;
+import ru.udaltsov.models.repositories.WebhookRepository;
 
 import java.util.UUID;
 
 @Service
 public class WebhookService {
 
-    private final IOwnerRepository _ownerRepository;
+    private final IOwnerRepository ownerRepository;
 
-    private final WebClient _githubClient;
+    private final WebClient githubClient;
 
-    private final IWebhookRepository _webhookRepository;
+    private final WebhookRepository webhookRepository;
 
     @Autowired
     public WebhookService(
             IOwnerRepository ownerRepository,
             WebClient.Builder webClientBuilder,
-            IWebhookRepository webhookRepository) {
-        _ownerRepository = ownerRepository;
-        _githubClient = webClientBuilder
+            WebhookRepository webhookRepository) {
+        this.ownerRepository = ownerRepository;
+        githubClient = webClientBuilder
                 .baseUrl("https://api.github.com/repos")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PRBot")
                 .build();
-        _webhookRepository = webhookRepository;
+        this.webhookRepository = webhookRepository;
     }
 
     public Mono<ResponseEntity<String>> sendWebhook(WebhookInfo webhookInfo) {
-        return _ownerRepository.getOwnerById(Long.parseLong(webhookInfo.chatId()))
+        return ownerRepository.getOwnerById(Long.parseLong(webhookInfo.chatId()))
                 .flatMap(owner ->
-                    _githubClient
+                    githubClient
                             .post()
                             .uri(String.format("/%s/%s/hooks", owner.owner(), webhookInfo.repoName()))
                             .header("Authorization", "Bearer " + webhookInfo.token())
@@ -46,7 +47,9 @@ public class WebhookService {
                             .bodyValue(getBodyConfig(webhookInfo.webhook()))
                             .exchangeToMono(response -> {
                                 if (response.statusCode().is2xxSuccessful()) {
-                                    return response.bodyToMono(String.class).map(ResponseEntity::ok);
+                                    return response.bodyToMono(JsonNode.class)
+                                            .map(jsonNode -> jsonNode.get("id").asText())
+                                            .map(ResponseEntity::ok);
                                 }
                                 return response.bodyToMono(String.class)
                                         .flatMap(e -> Mono.error(new WebhookSetupException("Error sending webhook: " + e)));
@@ -55,7 +58,7 @@ public class WebhookService {
     }
 
     public Mono<Boolean> saveWebhook(Webhook webhook) {
-        return _webhookRepository.addWebhook(webhook)
+        return webhookRepository.addWebhook(webhook)
                 .flatMap(rowsInserted -> {
                     if (rowsInserted == 0) {
                         return Mono.just(false);
@@ -67,15 +70,31 @@ public class WebhookService {
     }
 
     public Mono<Boolean> hasWebhook(UUID integrationId, String webhookName) {
-        return _webhookRepository.findAllById(integrationId)
+        return webhookRepository.findAllById(integrationId)
                 .filter(webhook -> (webhookName.equals(webhook.webhook())))
                 .hasElements();
 
     }
 
-//    public Mono<Boolean> deleteWebhooks(String repoName) {
-//
-//    }
+    public Mono<Boolean> deleteWebhook(Long webhookId, WebhookInfo webhookInfo) {
+        return ownerRepository.getOwnerById(Long.parseLong(webhookInfo.chatId()))
+                .flatMap(owner ->
+                        githubClient
+                            .delete()
+                            .uri(String.format("/%s/%s/hooks/%s", owner.owner(), webhookInfo.repoName(), webhookId))
+                            .header("Authorization", "Bearer " + webhookInfo.token())
+                            .header("Accept", "application/vnd.github.v3+json")
+                            .exchangeToMono(response -> response.statusCode().is2xxSuccessful() ?
+                                    Mono.just(true)
+                                    : Mono.just(false)))
+                .flatMap(deleted -> deleted ?
+                        webhookRepository
+                                .deleteWebhook(webhookId)
+                                .flatMap(rowsDeleted -> rowsDeleted > 0 ?
+                                        Mono.just(true)
+                                        : Mono.just(false))
+                        : Mono.just(false));
+    }
 
     private String getBodyConfig(String webhookName) {
         String targetUrl = System.getenv("SMEE_URL");

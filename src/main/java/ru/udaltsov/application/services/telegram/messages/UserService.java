@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.UserAccessToken;
-import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
+import ru.udaltsov.models.repositories.UserAccessTokenRepository;
 
 @Service
 public class UserService {
 
-    private final IUserAccessTokenRepository _tokenRepository;
+    private final UserAccessTokenRepository _tokenRepository;
 
     @Autowired
     public UserService(
-            IUserAccessTokenRepository tokenRepository) {
+            UserAccessTokenRepository tokenRepository) {
         _tokenRepository = tokenRepository;
     }
 

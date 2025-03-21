@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
-import ru.udaltsov.data_access.repositories.UserAccessTokenRepository;
-import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
+import ru.udaltsov.models.repositories.UserAccessTokenRepository;
 
 import java.util.*;
 
@@ -21,13 +20,13 @@ public class IntegrationProviderService {
 
     private final WebClient _repoClient;
 
-    private final IUserAccessTokenRepository _userAccessTokenRepository;
+    private final UserAccessTokenRepository _userAccessTokenRepository;
 
     @Autowired
     public IntegrationProviderService(
             MessageSender messageSender,
             WebClient.Builder webClientBuilder,
-            IUserAccessTokenRepository userAccessTokenRepository) {
+            UserAccessTokenRepository userAccessTokenRepository) {
         _messageSender = messageSender;
 
         String repoUrl = "https://api.github.com/user/repos";

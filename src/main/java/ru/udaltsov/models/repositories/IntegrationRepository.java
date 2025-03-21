@@ -15,4 +15,6 @@ public interface IntegrationRepository {
     Mono<Long> DeleteIntegrationById(UUID integrationId);
 
     Mono<Long> AddIntegration(Integration integration);
+
+    Mono<Integration> findIntegrationById(UUID integrationId);
 }

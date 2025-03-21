@@ -9,20 +9,19 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Mono;
-import ru.udaltsov.models.repositories.IUserAccessTokenRepository;
 import ru.udaltsov.models.UserAccessToken;
 
 import java.sql.SQLException;
 
 @Repository
-public class UserAccessTokenRepository implements IUserAccessTokenRepository {
+public class UserAccessTokenRepositoryImpl implements ru.udaltsov.models.repositories.UserAccessTokenRepository {
 
     private final DatabaseClient _databaseClient;
 
-    private static final Logger logger = LoggerFactory.getLogger(UserAccessTokenRepository.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserAccessTokenRepositoryImpl.class);
 
     @Autowired
-    public UserAccessTokenRepository(DatabaseClient databaseClient) {
+    public UserAccessTokenRepositoryImpl(DatabaseClient databaseClient) {
         _databaseClient = databaseClient;
     }
 

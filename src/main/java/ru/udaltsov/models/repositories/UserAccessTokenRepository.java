@@ -3,7 +3,7 @@ package ru.udaltsov.models.repositories;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.UserAccessToken;
 
-public interface IUserAccessTokenRepository {
+public interface UserAccessTokenRepository {
 
     Mono<UserAccessToken> FindById(Long id);
 

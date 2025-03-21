@@ -5,11 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.github.WebhookService;
+import ru.udaltsov.application.services.telegram.DeleteIntegrationService;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
 import ru.udaltsov.application.models.update.CallbackQuery;
 import ru.udaltsov.application.services.telegram.messages.commands.GitHubWebhooksProviderService;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public class CallbackProcessorService {
@@ -80,10 +83,13 @@ public class CallbackProcessorService {
             String integrationId = decodeResult.get("value");
             String chatId = decodeResult.get("chatid");
 
-            return deleteIntegrationService.deleteIntegration(integrationId)
+            return deleteIntegrationService
+                    .deleteIntegration(
+                            UUID.fromString(integrationId),
+                            Long.parseLong(chatId))
                     .flatMap(deleted -> deleted ?
-                            messageSender.answerCallback(callbackQuery.getId(), "Deleted integration", false)
-                            : messageSender.answerCallback(callbackQuery.getId(), "Failed to delete", false));
+                                messageSender.answerCallback(callbackQuery.getId(), "Done!", false)
+                                : messageSender.answerCallback(callbackQuery.getId(), "Failed", false));
         }
         return Mono.just(ResponseEntity.badRequest().body("Invalid callback query"));
     }

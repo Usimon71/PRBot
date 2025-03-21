@@ -12,6 +12,8 @@ import ru.udaltsov.application.services.telegram.messages.UserService;
 import ru.udaltsov.models.Webhook;
 import ru.udaltsov.models.repositories.IntegrationRepository;
 
+import java.util.Objects;
+
 @Service
 public class NewWebhookService {
 
@@ -51,14 +53,18 @@ public class NewWebhookService {
     private Mono<ResponseEntity<String>> sendAndProcessWebhook(WebhookInfo webhookInfo) {
         return _webhookService.sendWebhook(webhookInfo)
                 .flatMap(response -> response.getStatusCode().is2xxSuccessful()
-                        ? saveWebhookIntegration(webhookInfo.chatId(), webhookInfo.webhook(), webhookInfo.repoName())
+                        ? saveWebhookIntegration(
+                                webhookInfo.chatId(),
+                                webhookInfo.webhook(),
+                                webhookInfo.repoName(),
+                                Long.parseLong(Objects.requireNonNull(response.getBody())))
                         : Mono.just(ResponseEntity.internalServerError().body("Failed to setup webhook"))
                 );
     }
 
-    private Mono<ResponseEntity<String>> saveWebhookIntegration(String chatId, String webhook, String repoName) {
+    private Mono<ResponseEntity<String>> saveWebhookIntegration(String chatId, String webhook, String repoName, Long webhookId) {
         return _integrationRepository.FindIntegrationByIdAndName(Long.parseLong(chatId), repoName)
-                .flatMap(integration -> _webhookService.saveWebhook(new Webhook(integration.id(), webhook)))
+                .flatMap(integration -> _webhookService.saveWebhook(new Webhook(integration.id(), webhook, webhookId)))
                 .flatMap(saved -> saved
                         ? Mono.just(ResponseEntity.ok("Successfully saved integration"))
                         : Mono.just(ResponseEntity.internalServerError().body("Failed to save webhook"))

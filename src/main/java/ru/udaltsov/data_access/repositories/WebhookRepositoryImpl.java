@@ -7,18 +7,18 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Webhook;
-import ru.udaltsov.models.repositories.IWebhookRepository;
+import ru.udaltsov.models.repositories.WebhookRepository;
 
 import java.sql.SQLException;
 import java.util.UUID;
 
 @Repository
-public class WebhookRepository implements IWebhookRepository {
+public class WebhookRepositoryImpl implements WebhookRepository {
 
     private final DatabaseClient _databaseClient;
 
     @Autowired
-    public WebhookRepository(DatabaseClient databaseClient) {
+    public WebhookRepositoryImpl(DatabaseClient databaseClient) {
         _databaseClient = databaseClient;
     }
 
@@ -39,14 +39,13 @@ public class WebhookRepository implements IWebhookRepository {
     }
 
     @Override
-    public Mono<Long> deleteWebhook(Webhook webhook) {
+    public Mono<Long> deleteWebhook(Long webhookId) {
         String sql = "DELETE FROM webhooks" +
-                " WHERE id = :id AND webhook = :webhook";
+                " WHERE webhook_id = :webhook_id";
 
         return _databaseClient
                 .sql(sql)
-                .bind("id", webhook.id())
-                .bind("webhook", webhook.webhook())
+                .bind("webhook_id", webhookId)
                 .fetch()
                 .rowsUpdated()
                 .onErrorResume(SQLException.class, e ->
@@ -54,16 +53,17 @@ public class WebhookRepository implements IWebhookRepository {
     }
 
     @Override
-    public Flux<Webhook> findAllById(UUID id) {
+    public Flux<Webhook> findAllById(UUID integrationId) {
         String sql = "SELECT * FROM webhooks " +
-                "WHERE id = :id";
+                "WHERE integration_id = :integration_id";
 
         return _databaseClient
                 .sql(sql)
-                .bind("id", id)
+                .bind("integration_id", integrationId)
                 .map(row -> new Webhook(
-                        row.get("id", UUID.class),
-                        row.get("webhook", String.class)
+                        row.get("integration_id", UUID.class),
+                        row.get("webhook", String.class),
+                        row.get("webhook_id", Long.class)
                 ))
                 .all()
                 .onErrorResume(SQLException.class, e ->

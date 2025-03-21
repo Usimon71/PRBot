@@ -6,11 +6,11 @@ import ru.udaltsov.models.Webhook;
 
 import java.util.UUID;
 
-public interface IWebhookRepository {
+public interface WebhookRepository {
 
     Mono<Long> addWebhook(Webhook webhook);
 
-    Mono<Long> deleteWebhook(Webhook webhook);
+    Mono<Long> deleteWebhook(Long webhookId);
 
-    Flux<Webhook> findAllById(UUID id);
+    Flux<Webhook> findAllById(UUID integrationId);
 }

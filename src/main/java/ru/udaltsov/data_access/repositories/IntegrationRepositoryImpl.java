@@ -15,11 +15,11 @@ import java.util.UUID;
 @Repository
 public class IntegrationRepositoryImpl implements IntegrationRepository {
 
-    private final DatabaseClient _databaseClient;
+    private final DatabaseClient databaseClient;
 
     @Autowired
     public IntegrationRepositoryImpl(DatabaseClient databaseClient) {
-        _databaseClient = databaseClient;
+        this.databaseClient = databaseClient;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class IntegrationRepositoryImpl implements IntegrationRepository {
         String sql = "SELECT * FROM integrations" +
                 " WHERE chatid = :chatid";
 
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind("chatid", chatId)
                 .map(row -> new Integration(
@@ -44,7 +44,7 @@ public class IntegrationRepositoryImpl implements IntegrationRepository {
     public Mono<Integration> FindIntegrationByIdAndName(Long chatId, String name) {
         String sql = "SELECT * FROM integrations WHERE chatid = :chatid AND name = :name";
 
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind("chatid", chatId)
                 .bind("name", name)
@@ -62,7 +62,7 @@ public class IntegrationRepositoryImpl implements IntegrationRepository {
         String sql = "DELETE FROM integrations " +
                 "WHERE id = :id";
 
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind("id", integrationId)
                 .fetch()
@@ -76,12 +76,29 @@ public class IntegrationRepositoryImpl implements IntegrationRepository {
         String sql = "INSERT INTO integrations (chatid, name) " +
                 "VALUES (:chatid, :name)";
 
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind("chatid", integration.chatId())
                 .bind("name", integration.repoName())
                 .fetch()
                 .rowsUpdated()
+                .onErrorResume(SQLException.class, e ->
+                        Mono.error(new DatabaseException("Database error occurred", e)));
+    }
+
+    @Override
+    public Mono<Integration> findIntegrationById(UUID integrationId) {
+        String sql = "SELECT * FROM integrations WHERE id = :id";
+
+        return databaseClient
+                .sql(sql)
+                .bind("id", integrationId)
+                .map(row -> new Integration(
+                        row.get("id", UUID.class),
+                        row.get("chatid", Long.class),
+                        row.get("name", String.class)
+                ))
+                .one()
                 .onErrorResume(SQLException.class, e ->
                         Mono.error(new DatabaseException("Database error occurred", e)));
     }
