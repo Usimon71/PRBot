@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.models.Integration;
 
 import java.time.Duration;
@@ -20,15 +21,30 @@ import java.util.Map;
 
 @Service
 public class MessageSender {
-    protected static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
+//    protected static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
 
     private final WebClient client;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
-    public MessageSender(WebClient.Builder webClientBuilder) {
-        String baseUrl = "https://api.telegram.org/bot" + BOT_TOKEN;
+    public MessageSender(WebClient.Builder webClientBuilder,
+                         VaultService vaultService) {
+//        String botToken = vaultService.getSecrets().map(secrets ->
+//                secrets.get("BOT_TOKEN")).block();
+        String response = vaultService.getSecrets().block();
+        JsonNode jsonResponse;
+        try {
+            jsonResponse = new ObjectMapper().readTree(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        String botToken = jsonResponse.get("secrets").get(0).get("static_version").get("value").asText();
+
+        if (botToken == null || botToken.isEmpty()) {
+            throw new IllegalArgumentException("Bot token is mandatory");
+        }
+        String baseUrl = "https://api.telegram.org/bot" + botToken;
         this.client = webClientBuilder
                 .baseUrl(baseUrl)
                 .defaultHeader("Content-Type", "application/json")
@@ -37,12 +53,11 @@ public class MessageSender {
 
     public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message) {
         Map<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("chat_id", chatId); // chat_id should be a number, not a string
+        payloadMap.put("chat_id", chatId);
         payloadMap.put("text", message);
         payloadMap.put("parse_mode", "MarkdownV2");
         payloadMap.put("disable_web_page_preview", true);
 
-        // Convert the map to a JSON string
         String payload;
         try {
             payload = new ObjectMapper().writeValueAsString(payloadMap);
@@ -61,12 +76,10 @@ public class MessageSender {
     }
 
     public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message, List<String> replyOptions, String replyType) {
-        // Root JSON object
         ObjectNode messageJson = mapper.createObjectNode();
         messageJson.put("chat_id", chatId);
         messageJson.put("text", message);
 
-        // Creating the keyboard layout
         ObjectNode replyMarkup = mapper.createObjectNode();
         ArrayNode keyboardArray = mapper.createArrayNode();
 
@@ -117,12 +130,10 @@ public class MessageSender {
             JsonNode options,
             String replyType,
             String repoName) {
-        // Root JSON object
         ObjectNode messageJson = mapper.createObjectNode();
         messageJson.put("chat_id", chatId);
         messageJson.put("text", message);
 
-        // Creating the keyboard layout
         ObjectNode replyMarkup = mapper.createObjectNode();
         ArrayNode keyboardArray = mapper.createArrayNode();
 
@@ -203,7 +214,6 @@ public class MessageSender {
     public Mono<ResponseEntity<String>> removeKeyboard(Long chatId) {
         ObjectMapper mapper = new ObjectMapper();
 
-        // Root JSON object
         ObjectNode messageJson = mapper.createObjectNode();
         messageJson.put("chat_id", chatId);
         messageJson.put("text", "Closing keyboard");
