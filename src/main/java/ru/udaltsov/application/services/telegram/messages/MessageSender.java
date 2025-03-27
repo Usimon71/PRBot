@@ -21,34 +21,21 @@ import java.util.Map;
 
 @Service
 public class MessageSender {
-//    protected static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
 
     private final WebClient client;
-
     private final ObjectMapper mapper = new ObjectMapper();
+    private final VaultService vaultService;
 
     @Autowired
-    public MessageSender(WebClient.Builder webClientBuilder,
-                         VaultService vaultService) {
-//        String botToken = vaultService.getSecrets().map(secrets ->
-//                secrets.get("BOT_TOKEN")).block();
-        String response = vaultService.getSecrets().block();
-        JsonNode jsonResponse;
-        try {
-            jsonResponse = new ObjectMapper().readTree(response);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        String botToken = jsonResponse.get("secrets").get(0).get("static_version").get("value").asText();
-
-        if (botToken == null || botToken.isEmpty()) {
-            throw new IllegalArgumentException("Bot token is mandatory");
-        }
-        String baseUrl = "https://api.telegram.org/bot" + botToken;
+    public MessageSender(
+            WebClient.Builder webClientBuilder,
+            VaultService vaultService) {
+        String baseUrl = "https://api.telegram.org";
         this.client = webClientBuilder
                 .baseUrl(baseUrl)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
+        this.vaultService = vaultService;
     }
 
     public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message) {
@@ -65,9 +52,16 @@ public class MessageSender {
             return Mono.error(e);
         }
         System.out.println(payload);
+
+        String botToken = vaultService.getSecret("BOT_TOKEN");
+        if (botToken == null || botToken.isEmpty()) {
+            return Mono.error(new RuntimeException("Bot token is mandatory"));
+        }
+        String uri = "/bot" + botToken + "/sendMessage";
+
         return client
                 .post()
-                .uri("/sendMessage")
+                .uri(uri)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -113,9 +107,15 @@ public class MessageSender {
             return Mono.error(e);
         }
 
+        String botToken = vaultService.getSecret("BOT_TOKEN");
+        if (botToken == null || botToken.isEmpty()) {
+            return Mono.error(new RuntimeException("Bot token is mandatory"));
+        }
+        String uri = "/bot" + botToken + "/sendMessage";
+
         return client
                 .post()
-                .uri("/sendMessage")
+                .uri(uri)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -160,9 +160,15 @@ public class MessageSender {
             return Mono.error(e);
         }
 
+        String botToken = vaultService.getSecret("BOT_TOKEN");
+        if (botToken == null || botToken.isEmpty()) {
+            return Mono.error(new RuntimeException("Bot token is mandatory"));
+        }
+        String uri = "/bot" + botToken + "/sendMessage";
+
         return client
                 .post()
-                .uri("/sendMessage")
+                .uri(uri)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -200,9 +206,15 @@ public class MessageSender {
             return Mono.error(e);
         }
 
+        String botToken = vaultService.getSecret("BOT_TOKEN");
+        if (botToken == null || botToken.isEmpty()) {
+            return Mono.error(new RuntimeException("Bot token is mandatory"));
+        }
+        String uri = "/bot" + botToken + "/sendMessage";
+
         return client
                 .post()
-                .uri("/sendMessage")
+                .uri(uri)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -229,9 +241,15 @@ public class MessageSender {
             return Mono.error(e);
         }
 
+        String botToken = vaultService.getSecret("BOT_TOKEN");
+        if (botToken == null || botToken.isEmpty()) {
+            return Mono.error(new RuntimeException("Bot token is mandatory"));
+        }
+        String uri = "/bot" + botToken + "/sendMessage";
+
         return client
                 .post()
-                .uri("/sendMessage")
+                .uri(uri)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -252,9 +270,15 @@ public class MessageSender {
             return Mono.error(e);
         }
 
+        String botToken = vaultService.getSecret("BOT_TOKEN");
+        if (botToken == null || botToken.isEmpty()) {
+            return Mono.error(new RuntimeException("Bot token is mandatory"));
+        }
+        String uri = "/bot" + botToken + "/answerCallbackQuery";
+
         return client
                 .post()
-                .uri("/answerCallbackQuery")
+                .uri(uri)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
