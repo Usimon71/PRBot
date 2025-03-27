@@ -6,12 +6,11 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Owner;
-import ru.udaltsov.models.repositories.IOwnerRepository;
 
 import java.sql.SQLException;
 
 @Repository
-public class OwnerRepository implements IOwnerRepository {
+public class OwnerRepository implements ru.udaltsov.models.repositories.OwnerRepository {
 
     private final DatabaseClient _databaseClient;
 

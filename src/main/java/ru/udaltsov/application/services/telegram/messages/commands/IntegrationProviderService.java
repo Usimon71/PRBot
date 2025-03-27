@@ -16,32 +16,30 @@ import java.util.*;
 @Service
 public class IntegrationProviderService {
 
-    private final MessageSender _messageSender;
-
-    private final WebClient _repoClient;
-
-    private final UserAccessTokenRepository _userAccessTokenRepository;
+    private final MessageSender messageSender;
+    private final WebClient repoClient;
+    private final UserAccessTokenRepository userAccessTokenRepository;
 
     @Autowired
     public IntegrationProviderService(
             MessageSender messageSender,
             WebClient.Builder webClientBuilder,
             UserAccessTokenRepository userAccessTokenRepository) {
-        _messageSender = messageSender;
+        this.messageSender = messageSender;
 
         String repoUrl = "https://api.github.com/user/repos";
-        _repoClient = webClientBuilder
+        repoClient = webClientBuilder
                 .baseUrl(repoUrl)
                 .defaultHeader("Accept", "application/vnd.github.v3+json")
                 .build();
 
-        _userAccessTokenRepository = userAccessTokenRepository;
+        this.userAccessTokenRepository = userAccessTokenRepository;
     }
 
     public Mono<ResponseEntity<String>> sendRepositories(Long chatId) {
-        return _userAccessTokenRepository.FindById(chatId)
+        return userAccessTokenRepository.FindById(chatId)
                 .flatMap(userAccessToken ->
-                   _repoClient
+                   repoClient
                         .get()
                            .uri(uriBuilder -> uriBuilder.queryParam("type", "owner").build())
                         .header("Authorization", "Bearer " + userAccessToken.token())
@@ -56,15 +54,15 @@ public class IntegrationProviderService {
                                 return Mono.error(e);
                             }
                             if (repos.isEmpty()) {
-                                return _messageSender.sendMessage(chatId, "You have no repositories");
+                                return messageSender.sendMessage(chatId, "You have no repositories");
                             }
 
                             List<String> reposArr = repos.stream()
                                     .map(repo -> (String) repo.get("name"))
                                     .toList();
 
-                            return _messageSender.sendMessage(chatId, "Select repository:", reposArr, "i");
+                            return messageSender.sendMessage(chatId, "Select repository:", reposArr, "i");
                         }))
-                .switchIfEmpty(_messageSender.sendMessage(chatId, "You are not authenticated"));
+                .switchIfEmpty(messageSender.sendMessage(chatId, "You are not authenticated"));
     }
 }

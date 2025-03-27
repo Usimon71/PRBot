@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.application.services.telegram.callback.CallbackProcessorService;
 import ru.udaltsov.application.services.telegram.messages.MessageProcessorService;
 
@@ -13,19 +14,19 @@ import ru.udaltsov.application.services.telegram.messages.MessageProcessorServic
 @RequestMapping("/webhook/{token}")
 public class TelegramBotWebhookController {
 
-    private static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
-
-    private final MessageProcessorService _messageProcessorService;
-
-    private final CallbackProcessorService _callbackProcessorService;
+    private final MessageProcessorService messageProcessorService;
+    private final CallbackProcessorService callbackProcessorService;
+    private final VaultService vaultService;
 
     @Autowired
     public TelegramBotWebhookController(
             MessageProcessorService messageProcessorService,
-            CallbackProcessorService callbackProcessorService
+            CallbackProcessorService callbackProcessorService,
+            VaultService vaultService
             ) {
-        _messageProcessorService = messageProcessorService;
-        _callbackProcessorService = callbackProcessorService;
+        this.messageProcessorService = messageProcessorService;
+        this.callbackProcessorService = callbackProcessorService;
+        this.vaultService = vaultService;
     }
 
     @PostMapping
@@ -33,7 +34,7 @@ public class TelegramBotWebhookController {
             @PathVariable String token,
             @RequestBody Update update) throws JsonProcessingException {
 
-        if (!token.equals(BOT_TOKEN)) {
+        if (!token.equals(vaultService.getSecret("BOT_TOKEN"))) {
             return Mono.just(ResponseEntity.badRequest().body("Invalid token"));
         }
 
@@ -48,7 +49,7 @@ public class TelegramBotWebhookController {
 
             System.out.println("Message received!");
 
-            return _messageProcessorService.process(message);
+            return messageProcessorService.process(message);
         }
 
         if (update.hasCallbackQuery()) {
@@ -56,7 +57,7 @@ public class TelegramBotWebhookController {
 
             System.out.println("Callback query received!");
 
-            return _callbackProcessorService.process(callbackQuery);
+            return callbackProcessorService.process(callbackQuery);
         }
 
         return Mono.just(ResponseEntity.ok("TG Webhook processed successfully!"));

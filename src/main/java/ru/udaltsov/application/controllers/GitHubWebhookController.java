@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 import ru.udaltsov.application.HMACDigestComparator;
 import ru.udaltsov.application.HMACSha256Generator;
 import org.springframework.web.bind.annotation.*;
+import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.application.services.github.WebhookDeliveryService;
 
 import java.security.InvalidKeyException;
@@ -19,21 +20,23 @@ import java.security.NoSuchAlgorithmException;
 public class GitHubWebhookController {
 
     private final WebhookDeliveryService webhookDeliveryService;
+    private final VaultService vaultService;
 
     @Autowired
-    public GitHubWebhookController(WebhookDeliveryService webhookDeliveryService) {
+    public GitHubWebhookController(
+            WebhookDeliveryService webhookDeliveryService,
+            VaultService vaultService) {
         this.webhookDeliveryService = webhookDeliveryService;
+        this.vaultService = vaultService;
     }
     @PostMapping
     public Mono<ResponseEntity<String>> handleWebhook(@RequestHeader("X-GitHub-Event") String eventType,
                                                       @RequestHeader("x-hub-signature-256") String signature,
-                                                      @RequestHeader("X-GitHub-Hook-ID") String hookId,
                                                       @RequestBody String stringPayload) throws NoSuchAlgorithmException, InvalidKeyException {
         System.out.println("Webhook received!");
-        System.out.println(hookId);
 
         boolean compareResult = HMACDigestComparator.compare(
-                HMACSha256Generator.generate(System.getenv("WEBHOOK_SECRET"), stringPayload),
+                HMACSha256Generator.generate(vaultService.getSecret("WEBHOOK_SECRET"), stringPayload),
                 signature);
 
         if (!compareResult) {

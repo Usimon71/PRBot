@@ -17,13 +17,10 @@ import java.util.Objects;
 @Service
 public class NewWebhookService {
 
-    private final IntegrationRepository _integrationRepository;
-
-    private final UserService _userService;
-
-    public final OwnerService _ownerService;
-
-    public final WebhookService _webhookService;
+    private final IntegrationRepository integrationRepository;
+    private final UserService userService;
+    public final OwnerService ownerService;
+    public final WebhookService webhookService;
 
     @Autowired
     NewWebhookService(
@@ -31,18 +28,18 @@ public class NewWebhookService {
             UserService userService,
             OwnerService ownerService,
             WebhookService webhookService) {
-        _integrationRepository = integrationRepository;
-        _userService = userService;
-        _ownerService = ownerService;
-        _webhookService = webhookService;
+        this.integrationRepository = integrationRepository;
+        this.userService = userService;
+        this.ownerService = ownerService;
+        this.webhookService = webhookService;
     }
 
     public Mono<ResponseEntity<String>> setupWebhook(String chatId, String webhook, String repoName) {
         return hasWebhook(chatId, repoName, webhook)
                 .flatMap(has -> has ?
                         Mono.just(ResponseEntity.ok("Webhook already exists"))
-                        : _userService.findUserToken(chatId)
-                            .flatMap(token -> _ownerService.findOwnerByChatId(chatId)
+                        : userService.findUserToken(chatId)
+                            .flatMap(token -> ownerService.findOwnerByChatId(chatId)
                                     .flatMap(owner -> sendAndProcessWebhook(new WebhookInfo(chatId, webhook, repoName, token)))
                             )
                             .switchIfEmpty(Mono.just(ResponseEntity.badRequest().body("User token or owner not found")))
@@ -51,7 +48,7 @@ public class NewWebhookService {
     }
 
     private Mono<ResponseEntity<String>> sendAndProcessWebhook(WebhookInfo webhookInfo) {
-        return _webhookService.sendWebhook(webhookInfo)
+        return webhookService.sendWebhook(webhookInfo)
                 .flatMap(response -> response.getStatusCode().is2xxSuccessful()
                         ? saveWebhookIntegration(
                                 webhookInfo.chatId(),
@@ -63,8 +60,8 @@ public class NewWebhookService {
     }
 
     private Mono<ResponseEntity<String>> saveWebhookIntegration(String chatId, String webhook, String repoName, Long webhookId) {
-        return _integrationRepository.FindIntegrationByIdAndName(Long.parseLong(chatId), repoName)
-                .flatMap(integration -> _webhookService.saveWebhook(new Webhook(integration.id(), webhook, webhookId)))
+        return integrationRepository.FindIntegrationByIdAndName(Long.parseLong(chatId), repoName)
+                .flatMap(integration -> webhookService.saveWebhook(new Webhook(integration.id(), webhook, webhookId)))
                 .flatMap(saved -> saved
                         ? Mono.just(ResponseEntity.ok("Successfully saved integration"))
                         : Mono.just(ResponseEntity.internalServerError().body("Failed to save webhook"))
@@ -77,8 +74,8 @@ public class NewWebhookService {
     }
 
     private Mono<Boolean> hasWebhook(String chatId, String repoName, String webhookName) {
-        return _integrationRepository.FindIntegrationByIdAndName(Long.parseLong(chatId), repoName)
-                .flatMap(integration -> _webhookService.hasWebhook(integration.id(), webhookName))
+        return integrationRepository.FindIntegrationByIdAndName(Long.parseLong(chatId), repoName)
+                .flatMap(integration -> webhookService.hasWebhook(integration.id(), webhookName))
                 .switchIfEmpty(Mono.error(new RuntimeException("Integration not found")));
     }
 }

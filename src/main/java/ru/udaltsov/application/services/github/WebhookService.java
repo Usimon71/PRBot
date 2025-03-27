@@ -7,8 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.models.Webhook;
-import ru.udaltsov.models.repositories.IOwnerRepository;
+import ru.udaltsov.models.repositories.OwnerRepository;
 import ru.udaltsov.models.repositories.WebhookRepository;
 
 import java.util.UUID;
@@ -16,23 +17,24 @@ import java.util.UUID;
 @Service
 public class WebhookService {
 
-    private final IOwnerRepository ownerRepository;
-
+    private final OwnerRepository ownerRepository;
     private final WebClient githubClient;
-
     private final WebhookRepository webhookRepository;
+    private final VaultService vaultService;
 
     @Autowired
     public WebhookService(
-            IOwnerRepository ownerRepository,
+            OwnerRepository ownerRepository,
             WebClient.Builder webClientBuilder,
-            WebhookRepository webhookRepository) {
+            WebhookRepository webhookRepository,
+            VaultService vaultService) {
         this.ownerRepository = ownerRepository;
         githubClient = webClientBuilder
                 .baseUrl("https://api.github.com/repos")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PRBot")
                 .build();
         this.webhookRepository = webhookRepository;
+        this.vaultService = vaultService;
     }
 
     public Mono<ResponseEntity<String>> sendWebhook(WebhookInfo webhookInfo) {
@@ -98,7 +100,7 @@ public class WebhookService {
 
     private String getBodyConfig(String webhookName) {
         String targetUrl = System.getenv("SMEE_URL");
-        String secret = System.getenv("WEBHOOK_SECRET");
+        String secret = vaultService.getSecret("WEBHOOK_SECRET");
 
         return """
         {

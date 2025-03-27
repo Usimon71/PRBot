@@ -11,19 +11,19 @@ import java.util.UUID;
 @Service
 public class NewIntegrationService {
 
-    private final IntegrationRepository _integrationRepository;
+    private final IntegrationRepository integrationRepository;
 
     public NewIntegrationService(
             IntegrationRepository integrationRepository) {
-        _integrationRepository = integrationRepository;
+        this.integrationRepository = integrationRepository;
     }
 
     public Mono<ResponseEntity<String>> saveIntegration(Long chatId, String name) {
-        return _integrationRepository.FindIntegrationByIdAndName(chatId, name)
+        return integrationRepository.FindIntegrationByIdAndName(chatId, name)
                 .flatMap(integration ->
                     Mono.just(ResponseEntity.ok("Integration already exists"))
                 )
-                .switchIfEmpty( _integrationRepository.AddIntegration(new Integration(UUID.randomUUID(), chatId, name))
+                .switchIfEmpty( integrationRepository.AddIntegration(new Integration(UUID.randomUUID(), chatId, name))
                         .flatMap(result -> {
                             if (result == 0) {
                                 return Mono

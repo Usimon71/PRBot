@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.application.services.telegram.messages.exceptions.TokenRequestException;
 
 import java.util.Map;
@@ -12,23 +13,27 @@ import java.util.Map;
 @Service
 public class TokenService {
 
-    private final WebClient _tokenClient;
+    private final WebClient tokenClient;
+    private final VaultService vaultService;
 
     @Autowired
-    public TokenService(WebClient.Builder clientBuilder) {
+    public TokenService(
+            WebClient.Builder clientBuilder,
+            VaultService vaultService) {
         String baseUrl = "https://github.com/login/oauth/access_token";
-        _tokenClient = clientBuilder
+        tokenClient = clientBuilder
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", "application/json")
                 .build();
+        this.vaultService = vaultService;
     }
 
     public Mono<String> requestToken(String code) {
-        return _tokenClient
+        return tokenClient
                 .post()
                 .body(
-                        BodyInserters.fromFormData("client_id", System.getenv("CLIENT_ID"))
-                        .with("client_secret", System.getenv("SECRET"))
+                        BodyInserters.fromFormData("client_id", vaultService.getSecret("CLIENT_ID"))
+                        .with("client_secret", vaultService.getSecret("SECRET"))
                         .with("code", code)
                         .with("redirect_uri", System.getenv("REDIRECT_AUTH_URL")))
                 .retrieve()

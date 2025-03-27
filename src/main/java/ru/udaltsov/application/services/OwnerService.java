@@ -7,20 +7,20 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.telegram.messages.exceptions.UserRequestException;
 import ru.udaltsov.models.Owner;
-import ru.udaltsov.models.repositories.IOwnerRepository;
+import ru.udaltsov.models.repositories.OwnerRepository;
 
 import java.util.Map;
 
 @Service
 public class OwnerService {
 
-    private final IOwnerRepository _ownerRepository;
+    private final OwnerRepository _ownerRepository;
 
     private final WebClient _userClient;
 
     @Autowired
     public OwnerService(
-            IOwnerRepository ownerRepository,
+            OwnerRepository ownerRepository,
             WebClient.Builder clientBuilder) {
         _ownerRepository = ownerRepository;
         _userClient = clientBuilder

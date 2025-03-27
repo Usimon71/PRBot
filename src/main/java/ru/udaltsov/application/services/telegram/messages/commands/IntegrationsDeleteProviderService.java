@@ -9,6 +9,7 @@ import ru.udaltsov.models.repositories.IntegrationRepository;
 
 @Service
 public class IntegrationsDeleteProviderService {
+
     private final IntegrationRepository integrationRepository;
     private final MessageSender messageSender;
 
@@ -24,8 +25,7 @@ public class IntegrationsDeleteProviderService {
 
         return integrationRepository.FindAllIntegrationsById(chatId)
                 .collectList()
-                .flatMap(integrationsList -> {
-                    return messageSender.sendIntegrations(chatId, integrationsList);
-                });
+                .flatMap(integrationsList ->
+                    messageSender.sendIntegrations(chatId, integrationsList));
     }
 }

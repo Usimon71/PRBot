@@ -3,7 +3,7 @@ package ru.udaltsov.models.repositories;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.Owner;
 
-public interface IOwnerRepository {
+public interface OwnerRepository {
 
     Mono<Long> addOwner(Owner owner);
 
@@ -11,3 +11,4 @@ public interface IOwnerRepository {
 
     Mono<Owner> getOwnerByOwnerName(String ownerName);
 }
+    
