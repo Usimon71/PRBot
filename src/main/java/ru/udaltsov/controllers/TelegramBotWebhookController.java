@@ -1,4 +1,4 @@
-package ru.udaltsov.application.controllers;
+package ru.udaltsov.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ru.udaltsov.application.models.update.Update;

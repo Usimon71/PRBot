@@ -2,27 +2,24 @@ package ru.udaltsov.data_access.repositories;
 
 import liquibase.exception.DatabaseException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Mono;
 import ru.udaltsov.models.UserAccessToken;
+import ru.udaltsov.models.repositories.UserAccessTokenRepository;
 
 import java.sql.SQLException;
 
 @Repository
-public class UserAccessTokenRepositoryImpl implements ru.udaltsov.models.repositories.UserAccessTokenRepository {
+public class UserAccessTokenRepositoryImpl implements UserAccessTokenRepository {
 
-    private final DatabaseClient _databaseClient;
-
-    private static final Logger logger = LoggerFactory.getLogger(UserAccessTokenRepositoryImpl.class);
+    private final DatabaseClient databaseClient;
 
     @Autowired
     public UserAccessTokenRepositoryImpl(DatabaseClient databaseClient) {
-        _databaseClient = databaseClient;
+        this.databaseClient = databaseClient;
     }
 
 
@@ -30,7 +27,7 @@ public class UserAccessTokenRepositoryImpl implements ru.udaltsov.models.reposit
     public Mono<UserAccessToken> FindById(Long id) {
         String sql = "SELECT * FROM chat" +
                 " WHERE chatid = $1";
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind(0, id)
                 .map(row -> new UserAccessToken(
@@ -47,7 +44,7 @@ public class UserAccessTokenRepositoryImpl implements ru.udaltsov.models.reposit
         String sql = "DELETE FROM chat " +
                 "WHERE chatid = $1";
 
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind(0, id)
                 .fetch()
@@ -61,7 +58,7 @@ public class UserAccessTokenRepositoryImpl implements ru.udaltsov.models.reposit
         String sql = "INSERT INTO chat (chatid, access_token) " +
                 "VALUES ($1, $2)";
 
-        return _databaseClient
+        return databaseClient
                 .sql(sql)
                 .bind(0, userAccessToken.id())
                 .bind(1, userAccessToken.token())

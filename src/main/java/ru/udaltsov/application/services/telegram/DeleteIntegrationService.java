@@ -5,28 +5,29 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.github.WebhookInfo;
 import ru.udaltsov.application.services.github.WebhookService;
+import ru.udaltsov.application.services.telegram.messages.UserService;
 import ru.udaltsov.models.repositories.IntegrationRepository;
-import ru.udaltsov.models.repositories.UserAccessTokenRepository;
 import ru.udaltsov.models.repositories.WebhookRepository;
 
 import java.util.UUID;
 
 @Service
 public class DeleteIntegrationService {
+
     private final WebhookService webhookService;
     private final WebhookRepository webhookRepository;
-    private final UserAccessTokenRepository userAccessTokenRepository;
+    private final UserService userService;
     private final IntegrationRepository integrationRepository;
 
     @Autowired
     public DeleteIntegrationService(
             WebhookService webhookService,
             WebhookRepository webhookRepository,
-            UserAccessTokenRepository userAccessTokenRepository,
+            UserService userService,
             IntegrationRepository integrationRepository) {
         this.webhookService = webhookService;
         this.webhookRepository = webhookRepository;
-        this.userAccessTokenRepository = userAccessTokenRepository;
+        this.userService = userService;
         this.integrationRepository = integrationRepository;
     }
 
@@ -34,7 +35,7 @@ public class DeleteIntegrationService {
         return webhookRepository
                 .findAllById(integrationId)
                 .flatMap(webhook ->
-                        userAccessTokenRepository.FindById(chatId)
+                        userService.findUserToken(chatId.toString())
                                 .flatMap(token ->
                                         integrationRepository
                                                 .findIntegrationById(integrationId)
@@ -46,7 +47,7 @@ public class DeleteIntegrationService {
                                                                                 chatId.toString(),
                                                                                 webhook.webhook(),
                                                                                 integration.repoName(),
-                                                                                token.token()
+                                                                                token
                                                                                 )
                                                                 ))
                                         ))

@@ -1,4 +1,4 @@
-package ru.udaltsov.application.controllers;
+package ru.udaltsov.controllers;
 
 import ru.udaltsov.application.services.telegram.messages.AccessTokenService;
 import org.springframework.http.ResponseEntity;
@@ -9,11 +9,11 @@ import reactor.core.publisher.Mono;
 @RequestMapping("auth/github")
 public class GitHubAuthController {
 
-    private final AccessTokenService _accessTokenService;
+    private final AccessTokenService accessTokenService;
 
     public GitHubAuthController(
             AccessTokenService accessTokenService) {
-        _accessTokenService = accessTokenService;
+        this.accessTokenService = accessTokenService;
     }
 
     @GetMapping("/callback")
@@ -21,6 +21,6 @@ public class GitHubAuthController {
             @RequestParam("code") String code,
             @RequestParam("state") String chatId) {
 
-        return _accessTokenService.authorize(code, chatId);
+        return accessTokenService.authorize(code, chatId);
     }
 }

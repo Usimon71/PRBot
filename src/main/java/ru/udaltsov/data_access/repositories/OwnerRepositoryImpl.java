@@ -10,12 +10,12 @@ import ru.udaltsov.models.Owner;
 import java.sql.SQLException;
 
 @Repository
-public class OwnerRepository implements ru.udaltsov.models.repositories.OwnerRepository {
+public class OwnerRepositoryImpl implements ru.udaltsov.models.repositories.OwnerRepository {
 
     private final DatabaseClient _databaseClient;
 
     @Autowired
-    public OwnerRepository(DatabaseClient databaseClient) {
+    public OwnerRepositoryImpl(DatabaseClient databaseClient) {
         _databaseClient = databaseClient;
     }
 

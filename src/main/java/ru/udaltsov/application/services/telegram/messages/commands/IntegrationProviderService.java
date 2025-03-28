@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.udaltsov.application.services.telegram.messages.MessageSender;
-import ru.udaltsov.models.repositories.UserAccessTokenRepository;
+import ru.udaltsov.application.services.telegram.messages.UserService;
 
 import java.util.*;
 
@@ -18,13 +18,13 @@ public class IntegrationProviderService {
 
     private final MessageSender messageSender;
     private final WebClient repoClient;
-    private final UserAccessTokenRepository userAccessTokenRepository;
+    private final UserService userService;
 
     @Autowired
     public IntegrationProviderService(
             MessageSender messageSender,
             WebClient.Builder webClientBuilder,
-            UserAccessTokenRepository userAccessTokenRepository) {
+            UserService userService) {
         this.messageSender = messageSender;
 
         String repoUrl = "https://api.github.com/user/repos";
@@ -33,16 +33,16 @@ public class IntegrationProviderService {
                 .defaultHeader("Accept", "application/vnd.github.v3+json")
                 .build();
 
-        this.userAccessTokenRepository = userAccessTokenRepository;
+        this.userService = userService;
     }
 
     public Mono<ResponseEntity<String>> sendRepositories(Long chatId) {
-        return userAccessTokenRepository.FindById(chatId)
+        return userService.findUserToken(chatId.toString())
                 .flatMap(userAccessToken ->
                    repoClient
                         .get()
                            .uri(uriBuilder -> uriBuilder.queryParam("type", "owner").build())
-                        .header("Authorization", "Bearer " + userAccessToken.token())
+                        .header("Authorization", "Bearer " + userAccessToken)
                         .retrieve()
                         .bodyToMono(String.class)
                         .flatMap(responseBody_repo -> {

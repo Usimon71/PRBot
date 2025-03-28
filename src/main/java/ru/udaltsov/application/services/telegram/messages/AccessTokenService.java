@@ -11,13 +11,10 @@ import reactor.core.publisher.Mono;
 @Service
 public class AccessTokenService {
 
-    private final MessageSender _messageSender;
-
-    private final UserService _userService;
-
-    private final TokenService _tokenService;
-
-    private final OwnerService _ownerService;
+    private final MessageSender messageSender;
+    private final UserService userService;
+    private final TokenService tokenService;
+    private final OwnerService ownerService;
 
     @Autowired
     public AccessTokenService(
@@ -25,14 +22,14 @@ public class AccessTokenService {
             UserService userService,
             TokenService tokenService,
             OwnerService ownerService) {
-        _messageSender = messageSender;
-        _userService = userService;
-        _tokenService = tokenService;
-        _ownerService = ownerService;
+        this.messageSender = messageSender;
+        this.userService = userService;
+        this.tokenService = tokenService;
+        this.ownerService = ownerService;
     }
 
     public Mono<ResponseEntity<String>> authorize(String code, String chatId) {
-        return  _userService.findUserToken(chatId)
+        return  userService.findUserToken(chatId)
                 .flatMap(token -> sendSuccessMessage(chatId))
                 .switchIfEmpty(handleNewAuthorization(code, chatId))
                 .onErrorResume(TokenRequestException.class, ex -> sendFailureMessage(chatId))
@@ -40,14 +37,14 @@ public class AccessTokenService {
     }
 
     private Mono<ResponseEntity<String>> handleNewAuthorization(String code, String chatId) {
-        return _tokenService.requestToken(code)
-                .flatMap(accessToken -> _userService.saveUserToken(chatId, accessToken)
+        return tokenService.requestToken(code)
+                .flatMap(accessToken -> userService.saveUserToken(chatId, accessToken)
                         .flatMap(result -> {
                             if (result instanceof SaveUserResult.Failure) {
                                 return Mono.just(ResponseEntity.internalServerError()
                                         .body("Failed to save user access token"));
                             }
-                            return _ownerService.saveOwner(chatId, accessToken)
+                            return ownerService.saveOwner(chatId, accessToken)
                                     .flatMap(saved -> {
                                         if (!saved) {
                                             return Mono.just(ResponseEntity
@@ -61,12 +58,12 @@ public class AccessTokenService {
     }
 
     private Mono<ResponseEntity<String>> sendSuccessMessage(String chatId) {
-        return _messageSender.sendMessage(Long.parseLong(chatId), "Successful identification")
+        return messageSender.sendMessage(Long.parseLong(chatId), "Successful identification")
                 .thenReturn(getRedirectResponse());
     }
 
     private Mono<ResponseEntity<String>> sendFailureMessage(String chatId) {
-        return _messageSender
+        return messageSender
                 .sendMessage(Long.parseLong(chatId), "Failed to authorize")
                 .thenReturn(getRedirectResponse());
     }
