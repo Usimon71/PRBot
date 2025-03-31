@@ -3,7 +3,7 @@ package ru.udaltsov.application.services.telegram.messages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import ru.udaltsov.application.EncryptionService;
+import ru.udaltsov.application.services.EncryptionService;
 import ru.udaltsov.models.UserAccessToken;
 import ru.udaltsov.models.repositories.UserAccessTokenRepository;
 

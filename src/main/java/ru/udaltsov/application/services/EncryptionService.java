@@ -1,4 +1,4 @@
-package ru.udaltsov.application;
+package ru.udaltsov.application.services;
 
 import org.jasypt.util.text.AES256TextEncryptor;
 import org.springframework.stereotype.Service;
