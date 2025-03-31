@@ -34,6 +34,7 @@ public class GitHubWebhookController {
                                                       @RequestHeader("x-hub-signature-256") String signature,
                                                       @RequestBody String stringPayload) throws NoSuchAlgorithmException, InvalidKeyException {
         System.out.println("Webhook received!");
+        System.out.println("Event type: " + eventType);
 
         boolean compareResult = HMACDigestComparator.compare(
                 HMACSha256Generator.generate(vaultService.getSecret("WEBHOOK_SECRET"), stringPayload),

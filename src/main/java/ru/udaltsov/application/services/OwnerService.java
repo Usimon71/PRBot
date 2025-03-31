@@ -14,23 +14,23 @@ import java.util.Map;
 @Service
 public class OwnerService {
 
-    private final OwnerRepository _ownerRepository;
+    private final OwnerRepository ownerRepository;
 
-    private final WebClient _userClient;
+    private final WebClient userClient;
 
     @Autowired
     public OwnerService(
             OwnerRepository ownerRepository,
             WebClient.Builder clientBuilder) {
-        _ownerRepository = ownerRepository;
-        _userClient = clientBuilder
+        this.ownerRepository = ownerRepository;
+        userClient = clientBuilder
                 .baseUrl("https://api.github.com/user")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PRBot")
                 .build();
     }
 
     public Mono<Boolean> saveOwner(String chatId, String token) {
-        return _userClient
+        return userClient
                 .get()
                 .header("Authorization", "Bearer " + token)
                 .retrieve()
@@ -40,25 +40,30 @@ public class OwnerService {
                         return Mono.error(new UserRequestException("Failed to request token"));
                     }
 
-                    return _ownerRepository
-                            .addOwner(new Owner(Long.parseLong(chatId), response.get("login").toString()))
-                            .flatMap(ownersInserted -> {
-                                if (ownersInserted == 0) {
-                                    return Mono.just(false);
-                                }
+                    return ownerRepository
+                            .getOwnerById(Long.parseLong(chatId))
+                            .flatMap(owner -> Mono.just(true))
+                            .switchIfEmpty(
+                                    ownerRepository
+                                            .addOwner(new Owner(Long.parseLong(chatId), response.get("login").toString()))
+                                            .flatMap(ownersInserted -> {
+                                                if (ownersInserted == 0) {
+                                                    return Mono.just(false);
+                                                }
 
-                                return Mono.just(true);
-                            });
+                                                return Mono.just(true);
+                                            })
+                            );
                 });
     }
 
     public Mono<String> findOwnerByChatId(String chatId) {
-        return _ownerRepository.getOwnerById(Long.parseLong(chatId))
+        return ownerRepository.getOwnerById(Long.parseLong(chatId))
                 .map(Owner::owner);
     }
 
     public Mono<Long> findChatIdByOwnerName(String ownerName) {
-        return _ownerRepository.getOwnerByOwnerName(ownerName)
+        return ownerRepository.getOwnerByOwnerName(ownerName)
                 .map(Owner::chatId);
     }
 }
