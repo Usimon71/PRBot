@@ -39,14 +39,14 @@ public class AccessTokenService {
     private Mono<ResponseEntity<String>> handleNewAuthorization(String code, String chatId) {
         return tokenService.requestToken(code)
                 .flatMap(accessToken -> userService.saveUserToken(chatId, accessToken)
-                        .flatMap(result -> {
-                            if (result instanceof SaveUserResult.Failure) {
+                        .flatMap(saved -> {
+                            if (!saved) {
                                 return Mono.just(ResponseEntity.internalServerError()
                                         .body("Failed to save user access token"));
                             }
                             return ownerService.saveOwner(chatId, accessToken)
-                                    .flatMap(saved -> {
-                                        if (!saved) {
+                                    .flatMap(savedOwner -> {
+                                        if (!savedOwner) {
                                             return Mono.just(ResponseEntity
                                                     .internalServerError()
                                                     .body("Failed to save username"));

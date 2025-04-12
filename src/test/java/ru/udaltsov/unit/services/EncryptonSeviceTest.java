@@ -1,4 +1,4 @@
-package ru.udaltsov;
+package ru.udaltsov.unit.services;
 
 import org.junit.jupiter.api.Test;
 import ru.udaltsov.application.services.EncryptionService;

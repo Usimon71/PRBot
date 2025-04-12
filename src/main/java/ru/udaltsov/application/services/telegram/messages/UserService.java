@@ -27,16 +27,16 @@ public class UserService {
                 .map(encryptionService::decrypt);
     }
 
-    public Mono<SaveUserResult> saveUserToken(String chatId, String token) {
+    public Mono<Boolean> saveUserToken(String chatId, String token) {
         String encryptedToken = encryptionService.encrypt(token);
         return tokenRepository
                 .Add(new UserAccessToken(Long.parseLong(chatId), encryptedToken))
                 .flatMap(rowsInserted -> {
                     if (rowsInserted == 0) {
-                        return Mono.just(new SaveUserResult.Failure());
+                        return Mono.just(false);
                     }
 
-                    return Mono.just(new SaveUserResult.Success());
+                    return Mono.just(true);
                 });
     }
 }
