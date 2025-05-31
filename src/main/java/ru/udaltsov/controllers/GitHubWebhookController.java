@@ -3,6 +3,8 @@ package ru.udaltsov.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
@@ -22,6 +24,8 @@ public class GitHubWebhookController {
     private final WebhookDeliveryService webhookDeliveryService;
     private final VaultService vaultService;
 
+    private final static Logger logger = LoggerFactory.getLogger(GitHubWebhookController.class);
+
     @Autowired
     public GitHubWebhookController(
             WebhookDeliveryService webhookDeliveryService,
@@ -33,19 +37,18 @@ public class GitHubWebhookController {
     public Mono<ResponseEntity<String>> handleWebhook(@RequestHeader("X-GitHub-Event") String eventType,
                                                       @RequestHeader("x-hub-signature-256") String signature,
                                                       @RequestBody String stringPayload) throws NoSuchAlgorithmException, InvalidKeyException {
-        System.out.println("Webhook received!");
-        System.out.println("Event type: " + eventType);
+        logger.info("GitHub webhook received. Event type: {}", eventType);
 
         boolean compareResult = HMACDigestComparator.compare(
                 HMACSha256Generator.generate(vaultService.getSecret("WEBHOOK_SECRET"), stringPayload),
                 signature);
 
         if (!compareResult) {
-            System.out.println("Signature verification failed!");
+            logger.warn("HMAC SHA256 check failed. Event type: {}", eventType);
 
             return Mono.error(new Exception("Signature verification failed!"));
         } else {
-            System.out.println("Signature verified!");
+            logger.info("HMAC SHA256 check successful.");
         }
 
         JsonNode payload;

@@ -28,7 +28,6 @@ public class WebhookDeliveryService {
     public Mono<ResponseEntity<String>> process(JsonNode payload, String eventType) {
         return ownerService.findChatIdByOwnerName(payload.get("repository").get("owner").get("login").asText())
                 .flatMap(chatId -> {
-                    System.out.println("Event type: " + eventType);
                     EventHandler handler = new EventHandlerFactory().getHandler(eventType);
                     if (handler == null) {
                         return Mono.just(ResponseEntity.ok("Webhook is not supported"));

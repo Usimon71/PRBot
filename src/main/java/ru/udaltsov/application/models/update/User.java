@@ -16,7 +16,6 @@ public class User {
 
     private String username;
 
-    // Getters and setters
     public long getId() {
         return id;
     }

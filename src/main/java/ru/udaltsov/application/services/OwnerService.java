@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.configs.WebClientConfig;
 import ru.udaltsov.application.services.telegram.messages.exceptions.UserRequestException;
 import ru.udaltsov.models.Owner;
 import ru.udaltsov.models.repositories.OwnerRepository;
@@ -21,9 +22,9 @@ public class OwnerService {
     @Autowired
     public OwnerService(
             OwnerRepository ownerRepository,
-            WebClient.Builder clientBuilder) {
+            WebClientConfig clientConfig) {
         this.ownerRepository = ownerRepository;
-        userClient = clientBuilder
+        userClient = clientConfig.webClientBuilder()
                 .baseUrl("https://api.github.com/user")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PRBot")
                 .build();

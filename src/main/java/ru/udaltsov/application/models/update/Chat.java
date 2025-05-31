@@ -13,7 +13,6 @@ public class Chat {
 
     private String type;
 
-    // Getters and setters
     public long getId() {
         return id;
     }

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.configs.WebClientConfig;
 import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.models.Webhook;
 import ru.udaltsov.models.repositories.OwnerRepository;
@@ -25,11 +26,11 @@ public class WebhookService {
     @Autowired
     public WebhookService(
             OwnerRepository ownerRepository,
-            WebClient.Builder webClientBuilder,
+            WebClientConfig webClientConfig,
             WebhookRepository webhookRepository,
             VaultService vaultService) {
         this.ownerRepository = ownerRepository;
-        githubClient = webClientBuilder
+        githubClient = webClientConfig.webClientBuilder()
                 .baseUrl("https://api.github.com/repos")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PRBot")
                 .build();

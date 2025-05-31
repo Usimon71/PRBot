@@ -17,9 +17,8 @@ public class CallbackQuery {
     private String chatInstance;
 
     @JsonProperty("data")
-    private String data; // This contains your JSON-encoded callback data
+    private String data;
 
-    // Getters and Setters
     public String getId() {
         return id;
     }

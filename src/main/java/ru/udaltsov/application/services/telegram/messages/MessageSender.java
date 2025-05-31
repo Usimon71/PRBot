@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import ru.udaltsov.application.configs.WebClientConfig;
 import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.models.Integration;
 
@@ -25,19 +28,21 @@ public class MessageSender {
     private final WebClient client;
     private final ObjectMapper mapper = new ObjectMapper();
     private final VaultService vaultService;
+    private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
 
     @Autowired
     public MessageSender(
-            WebClient.Builder webClientBuilder,
+            WebClientConfig webClientConfig,
             VaultService vaultService) {
         String baseUrl = "https://api.telegram.org";
-        this.client = webClientBuilder
+        this.client = webClientConfig.webClientBuilder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
         this.vaultService = vaultService;
     }
 
+    // Sending normal message
     public Mono<ResponseEntity<String>> sendMessage(Long chatId, String message) {
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("chat_id", chatId);
@@ -51,10 +56,11 @@ public class MessageSender {
         } catch (JsonProcessingException e) {
             return Mono.error(e);
         }
-        System.out.println(payload);
 
         String botToken = vaultService.getSecret("BOT_TOKEN");
         if (botToken == null || botToken.isEmpty()) {
+            logger.error("Bot token is empty. Probable cause: Vault problem.");
+
             return Mono.error(new RuntimeException("Bot token is mandatory"));
         }
         String uri = "/bot" + botToken + "/sendMessage";
@@ -65,7 +71,6 @@ public class MessageSender {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
 
@@ -119,8 +124,6 @@ public class MessageSender {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .doOnError(error -> System.err.println("Telegram API Error: " + error.getMessage()))
-                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
 
@@ -172,8 +175,6 @@ public class MessageSender {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .doOnError(error -> System.err.println("Telegram API Error: " + error.getMessage()))
-                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
 
@@ -218,8 +219,6 @@ public class MessageSender {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .doOnError(error -> System.err.println("Telegram API Error: " + error.getMessage()))
-                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
 
@@ -253,7 +252,6 @@ public class MessageSender {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
 
@@ -282,7 +280,6 @@ public class MessageSender {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 .map(ResponseEntity::ok);
     }
 

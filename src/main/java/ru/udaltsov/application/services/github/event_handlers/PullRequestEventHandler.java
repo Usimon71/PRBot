@@ -9,8 +9,6 @@ public class PullRequestEventHandler implements EventHandler {
     public Mono<EventHandleResult> handleEvent(JsonNode payload, Long chatId) {
         String action = payload.get("action").asText();
 
-        System.out.println("Action: " + action);
-
         EventHandler handler = new PREventHandlerFactory().getHandler(action);
         if (handler == null) {
             return Mono.just(new EventHandleResult.EventNotSupported());

@@ -1,6 +1,8 @@
 package ru.udaltsov.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.udaltsov.application.models.update.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,9 @@ public class TelegramBotWebhookController {
     private final MessageProcessorService messageProcessorService;
     private final CallbackProcessorService callbackProcessorService;
     private final VaultService vaultService;
+
+    private static final Logger logger = LoggerFactory.getLogger(TelegramBotWebhookController.class);
+
 
     @Autowired
     public TelegramBotWebhookController(
@@ -42,12 +47,10 @@ public class TelegramBotWebhookController {
     }
 
     private Mono<ResponseEntity<String>> processUpdate(Update update) throws JsonProcessingException {
-        System.out.println("Telegram webhook received!");
-
         if (update.hasMessage()) {
             var message = update.getMessage();
 
-            System.out.println("Message received!");
+            logger.info("Message received from: {}", message.getFrom().getUsername());
 
             return messageProcessorService.process(message);
         }
@@ -55,10 +58,12 @@ public class TelegramBotWebhookController {
         if (update.hasCallbackQuery()) {
             var callbackQuery = update.getCallbackQuery();
 
-            System.out.println("Callback query received!");
+            logger.info("Callback query received from: {}", callbackQuery.getFrom().getUsername());
 
             return callbackProcessorService.process(callbackQuery);
         }
+
+        logger.info("Update is not recognized from: {}", update.getMessage().getFrom().getUsername());
 
         return Mono.just(ResponseEntity.ok("TG Webhook processed successfully!"));
     }

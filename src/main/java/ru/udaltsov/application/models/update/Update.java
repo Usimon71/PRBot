@@ -11,7 +11,6 @@ public class Update {
     @JsonProperty("callback_query")
     private CallbackQuery callbackQuery;
 
-    // Getters and setters
     public long getUpdateId() {
         return updateId;
     }

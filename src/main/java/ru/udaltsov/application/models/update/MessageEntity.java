@@ -10,12 +10,11 @@ public class MessageEntity {
     private int length;
 
     @JsonProperty("url")
-    private String url; // Optional: Only present for "text_link" types
+    private String url;
 
     @JsonProperty("user")
-    private User user; // Optional: Only present for "text_mention" types
+    private User user;
 
-    // Getters and setters
     public String getType() {
         return type;
     }

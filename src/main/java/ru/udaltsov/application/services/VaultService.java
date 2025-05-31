@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.configs.WebClientConfig;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,13 +23,13 @@ public class VaultService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AtomicReference<Map<String, String>> secretsCache = new AtomicReference<>(new HashMap<>());
 
-    private static final String TOKEN_URL = "https://auth.idp.hashicorp.com/oauth2/token";
-    private static final String SECRET_URL = "https://api.cloud.hashicorp.com/secrets/2023-11-28/organizations/6764204f-0025-4bfd-b71e-2f271e9b3b2b/projects/c0eef7cf-b426-4c1d-aa25-cc3906d55eba/apps/PRBotSecrets/secrets:open";
+    private static final String TOKEN_URL = System.getenv("HCP_TOKEN_URL");
+    private static final String SECRET_URL = System.getenv("HCP_SECRET_URL");
 
     @Autowired
-    public VaultService(WebClient.Builder webClientBuilder) {
-        this.tokenClient = webClientBuilder.baseUrl(TOKEN_URL).build();
-        this.secretClient = webClientBuilder.baseUrl(SECRET_URL).build();
+    public VaultService(WebClientConfig webClientConfig) {
+        this.tokenClient = webClientConfig.webClientBuilder().baseUrl(TOKEN_URL).build();
+        this.secretClient = webClientConfig.webClientBuilder().baseUrl(SECRET_URL).build();
     }
 
     private Mono<String> getToken() {
@@ -52,7 +53,6 @@ public class VaultService {
                         .retrieve()
                         .bodyToMono(String.class)
                         .map(this::parseSecrets)
-                        .onErrorResume(Mono::error)
         );
     }
 

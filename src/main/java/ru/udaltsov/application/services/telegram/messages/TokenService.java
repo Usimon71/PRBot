@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.udaltsov.application.configs.WebClientConfig;
 import ru.udaltsov.application.services.VaultService;
 import ru.udaltsov.application.services.telegram.messages.exceptions.TokenRequestException;
 
@@ -18,10 +19,10 @@ public class TokenService {
 
     @Autowired
     public TokenService(
-            WebClient.Builder clientBuilder,
+            WebClientConfig webClientConfig,
             VaultService vaultService) {
         String baseUrl = "https://github.com/login/oauth/access_token";
-        tokenClient = clientBuilder
+        tokenClient = webClientConfig.webClientBuilder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", "application/json")
                 .build();
